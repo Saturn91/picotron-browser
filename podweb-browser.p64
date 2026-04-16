@@ -266,9 +266,9 @@ function draw_content()
 end
 
 :: .info.pod
---[[pod,created="2026-04-16 00:00:00",modified="2026-04-16 21:15:38",runtime=25,workspaces={{location="main.lua#89",workspace_index=1},{location="config.lua",workspace_index=1},{location="parser.lua",workspace_index=1},{location="layout.lua#1",workspace_index=1},{location="domains.lua",workspace_index=1},{location="renderer.lua",workspace_index=1}}]]
+--[[pod,created="2026-04-16 00:00:00",modified="2026-04-16 21:17:53",runtime=25,workspaces={{location="main.lua#89",workspace_index=1},{location="config.lua",workspace_index=1},{location="parser.lua",workspace_index=1},{location="layout.lua#1",workspace_index=1},{location="domains.lua",workspace_index=1},{location="renderer.lua",workspace_index=1}}]]
 :: gfx/.info.pod
---[[pod,created="2026-04-16 21:08:59",modified="2026-04-16 21:15:38"]]
+--[[pod,created="2026-04-16 21:08:59",modified="2026-04-16 21:17:53"]]
 :: main.lua
 b64$LS1bW3BvZF9mb3JtYXQ9InJhdyIsY3JlYXRlZD0iMjAyNi0wNC0xNiAyMToxNToyOCIsbW9k
 aWZpZWQ9IjIwMjYtMDQtMTYgMjE6MTU6MzgiLHJldmlzaW9uPTFdXQotLSBQb2R3ZWIgQnJvd3Nl
@@ -318,7 +318,7 @@ bmQKICBlbmQKICBwcmV2X21vdXNlX2J0biA9IG1iCiAgZ3VpOnVwZGF0ZV9hbGwoKQplbmQKCmZ1
 bmN0aW9uIF9kcmF3KCkKICBjbHMoMSkKICBkcmF3X2FkZHJlc3NfYmFyKCkKICBkcmF3X2NvbnRl
 bnQoKQogIGd1aTpkcmF3X2FsbCgpCmVuZA==
 :: map/.info.pod
---[[pod,created="2026-04-16 21:08:59",modified="2026-04-16 21:15:38"]]
+--[[pod,created="2026-04-16 21:08:59",modified="2026-04-16 21:17:53"]]
 :: sfx/.info.pod
---[[pod,created="2026-04-16 21:08:59",modified="2026-04-16 21:15:38"]]
+--[[pod,created="2026-04-16 21:08:59",modified="2026-04-16 21:17:53"]]
 :: [eoc]
