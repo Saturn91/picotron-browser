@@ -5,56 +5,159 @@ version 2
 :: map/
 :: sfx/
 :: main.lua
---[[pod_format="raw",created="2026-04-16 15:34:19",modified="2026-04-16 15:55:32",revision=6]]
--- Podweb Browser v0.1
+--[[pod_format="raw"]]
+-- Podweb Browser v0.2 — entry point, state, and lifecycle
+include("config.lua")
+include("parser.lua")
+include("layout.lua")
+include("domains.lua")
+include("renderer.lua")
 
-gui = create_gui()
+gui            = create_gui()
+current_url    = HOME_URL
+render_items   = {}
+content_height = 0
+scroll_y       = 0
+prev_mouse_btn = 0
+url_bar        = nil
 
--- ============================
--- Constants
--- ============================
-local W, H     = 480, 270
-local BAR_H    = 16
-local PAD_X    = 6
-local CONT_W   = W - PAD_X * 2
-local LINE_H   = 8
-local CHAR_W   = 4   -- approx px per character (used for decorative underline only)
+function load_page()
+  scroll_y     = 0
+  render_items = {}
+  local src = fetch(current_url)
+  if src and src ~= "" then
+    local nodes, meta    = parse_podweb(src)
+    render_items, content_height = layout_nodes(nodes)
+    if meta.domain then
+      register_domain_if_new(meta.domain, string.match(current_url, "podnet://(%d+)/"))
+    end
+    local display = meta.domain
+      and (meta.domain .. "/" .. (string.match(current_url, "podnet://%d+/(.+)") or ""))
+      or  current_url
+    if url_bar and url_bar.set_text then url_bar:set_text(display) end
+  else
+    if url_bar and url_bar.set_text then url_bar:set_text(current_url) end
+  end
+end
 
-local MY_ID      = "48932"
-local DOMAINS_FILE = "podnet://" .. MY_ID .. "/domains.lookup"
+function follow_link(item)
+  local cur_user = string.match(current_url, "podnet://(%d+)/")
+  current_url = "podnet://" .. (item.user or cur_user) .. "/" .. (item.file or "index.podweb")
+  load_page()
+end
 
--- measure actual pixel width of a string using print() off the top of the screen
-function text_width(s)
+function _init()
+  window({ width=W, height=H, title="Podweb Browser" })
+  load_known_domains()
+
+  url_bar = gui:attach_text_editor{
+    x      = RELOAD_BTN.x + RELOAD_BTN.w + 4,
+    y      = 2,
+    width  = W - RELOAD_BTN.x - RELOAD_BTN.w - 8,
+    height = BAR_H - 4,
+    key_callback = {
+      ["enter"] = function(self, k)
+        local input = self:get_text()[1]
+        if input and input ~= "" then
+          current_url = resolve_url(input) or input
+          load_page()
+        end
+        return nil
+      end
+    }
+  }
+  if url_bar.set_text then url_bar:set_text(current_url) end
+  load_page()
+end
+
+function _update()
+  local _, _, mb, _, mwy = mouse()
+  local max_scroll = max(0, content_height - (H - BAR_H - 1))
+
+  if mwy and mwy ~= 0 then
+    scroll_y = mid(0, scroll_y - mwy * 8, max_scroll)
+  end
+  if btn(2) then scroll_y = max(0, scroll_y - 3) end
+  if btn(3) then scroll_y = min(max_scroll, scroll_y + 3) end
+
+  if (prev_mouse_btn & 1) == 1 and (mb & 1) == 0 then
+    if is_over_button(RELOAD_BTN) then
+      load_page()
+    else
+      for _, item in ipairs(render_items) do
+        if item.tag == "link" and is_link_hovered(item) then
+          follow_link(item)
+          break
+        end
+      end
+    end
+  end
+  prev_mouse_btn = mb
+  gui:update_all()
+end
+
+function _draw()
+  cls(1)
+  draw_address_bar()
+  draw_content()
+  gui:draw_all()
+end
+
+:: config.lua
+--[[pod_format="raw"]]
+-- Screen dimensions, layout metrics, and network configuration
+
+W, H         = 480, 270
+BAR_H        = 16
+PAD_X        = 6
+CONT_W       = W - PAD_X * 2
+LINE_H       = 8
+CHAR_W       = 4
+
+function get_users_domain_file()
+  return "podnet://" .. stat(64) .. "/domains.lookup"
+end
+
+DOMAINS_FILE = get_users_domain_file()
+HOME_URL     = "podnet://48932/index.podweb"
+
+RELOAD_BTN   = { x=4, y=2, w=36, h=12, label="Reload" }
+
+:: parser.lua
+--[[pod_format="raw"]]
+-- Parses .podweb markup source into a list of nodes and a meta table
+
+function measure_text(s)
   return print(s, 0, -20)
 end
 
--- ============================
--- State
--- ============================
-local url      = "podnet://48932/index.podweb"
-local items    = {}  -- laid-out render items: {tag, text, y}
-local total_h  = 0
-local scroll_y = 0
-local prev_mb  = 0
-local url_bar  = nil  -- set in _init()
-local domains  = {}   -- domain -> user_id, loaded from DOMAINS_FILE
+function wrap_text(text, max_w)
+  local wrapped, current, words = {}, "", {}
+  for word in string.gmatch(text, "%S+") do add(words, word) end
+  for _, word in ipairs(words) do
+    local candidate = current == "" and word or (current .. " " .. word)
+    if measure_text(candidate) <= max_w then
+      current = candidate
+    else
+      if current ~= "" then add(wrapped, current) end
+      current = word
+    end
+  end
+  if current ~= "" then add(wrapped, current) end
+  if #wrapped == 0 then add(wrapped, "") end
+  return wrapped
+end
 
-local BTN_R = { x=4, y=2, w=36, h=12, label="Reload" }
-
--- ============================
--- Parser
--- ============================
-function parse(src)
+function parse_podweb(src)
   local nodes, lines, meta = {}, {}, {}
-  for l in string.gmatch(src.."\n", "([^\n]*)\n") do
-    add(lines, l)
+  for line in string.gmatch(src .. "\n", "([^\n]*)\n") do
+    add(lines, line)
   end
 
   local i = 1
   while i <= #lines do
     local l = lines[i]
 
-    -- parse [meta-]...[-meta] into key/value table
     if string.match(l, "^%[meta%-%]") then
       i += 1
       while i <= #lines and not string.match(lines[i], "^%[%-meta%]") do
@@ -62,35 +165,30 @@ function parse(src)
         if key then meta[key] = val end
         i += 1
       end
-      i += 1  -- skip [-meta]
+      i += 1
 
-    -- block tag: [tag-] ... [-tag]
     elseif string.match(l, "^%[[%a%d]+%-%]") then
-      local tag   = string.match(l, "^%[([%a%d]+)%-%]")
-      local close = "[-"..tag.."]"
+      local tag   = string.lower(string.match(l, "^%[([%a%d]+)%-%]"))
+      local close = "[-" .. tag .. "]"
       local parts = {}
       i += 1
       while i <= #lines and lines[i] ~= close do
         add(parts, lines[i])
         i += 1
       end
-      -- code blocks preserve line structure; others join for word wrap
       local text = ""
       if tag == "code" then
         for j, p in ipairs(parts) do
-          text = j == 1 and p or (text.."\n"..p)
+          text = j == 1 and p or (text .. "\n" .. p)
         end
       else
         for _, p in ipairs(parts) do
-          if p ~= "" then
-            text = text == "" and p or (text.." "..p)
-          end
+          if p ~= "" then text = text == "" and p or (text .. " " .. p) end
         end
       end
       add(nodes, { tag=tag, text=text })
-      i += 1  -- skip closing tag
+      i += 1
 
-    -- link tag: [link user=X file=Y] display text
     elseif string.match(l, "^%[link") then
       local attrs = string.match(l, "^%[link([^%]]*)%]")
       local text  = string.match(l, "^%[link[^%]]*%] (.+)")
@@ -104,9 +202,8 @@ function parse(src)
       end
       i += 1
 
-    -- inline tag: [tag] text
     elseif string.match(l, "^%[[%a%d]+%] .+") then
-      local tag  = string.match(l, "^%[([%a%d]+)%]")
+      local tag  = string.lower(string.match(l, "^%[([%a%d]+)%]"))
       local text = string.match(l, "^%[[%a%d]+%] (.+)")
       add(nodes, { tag=tag, text=text })
       i += 1
@@ -119,230 +216,125 @@ function parse(src)
   return nodes, meta
 end
 
--- ============================
--- Word wrap
--- ============================
-function word_wrap(text, max_w)
-  local out, cur, words = {}, "", {}
-  for w in string.gmatch(text, "%S+") do add(words, w) end
-  for _, w in ipairs(words) do
-    local candidate = cur == "" and w or (cur.." "..w)
-    if text_width(candidate) <= max_w then
-      cur = candidate
-    else
-      if cur ~= "" then add(out, cur) end
-      cur = w
-    end
-  end
-  if cur ~= "" then add(out, cur) end
-  if #out == 0 then add(out, "") end
-  return out
-end
+:: layout.lua
+--[[pod_format="raw"]]
+-- Converts parsed nodes into positioned render items with absolute y coordinates
 
--- ============================
--- Layout
--- ============================
-function do_layout(nodes)
-  local out, y = {}, 4
-  for idx, n in ipairs(nodes) do
-    if n.tag == "h1" then
+function layout_nodes(nodes)
+  local render_items, y = {}, 4
+
+  for idx, node in ipairs(nodes) do
+    if node.tag == "h1" then
       if idx > 1 then y += 8 end
-      add(out, { tag="h1", text=n.text, y=y })
+      add(render_items, { tag="h1", text=node.text, y=y })
       y += LINE_H + 4
-    elseif n.tag == "h2" then
+
+    elseif node.tag == "h2" then
       if idx > 1 then y += 6 end
-      add(out, { tag="h2", text=n.text, y=y })
+      add(render_items, { tag="h2", text=node.text, y=y })
       y += LINE_H + 3
-    elseif n.tag == "p" then
-      for _, line in ipairs(word_wrap(n.text, CONT_W)) do
-        add(out, { tag="p", text=line, y=y })
+
+    elseif node.tag == "p" then
+      for _, wrapped_line in ipairs(wrap_text(node.text, CONT_W)) do
+        add(render_items, { tag="p", text=wrapped_line, y=y })
         y += LINE_H
       end
       y += 4
-    elseif n.tag == "link" then
+
+    elseif node.tag == "link" then
       y += 2
-      add(out, { tag="link", text=n.text, user=n.user, file=n.file, y=y })
+      add(render_items, { tag="link", text=node.text, user=node.user, file=node.file, y=y })
       y += LINE_H + 2
-    elseif n.tag == "code" then
+
+    elseif node.tag == "code" then
       local code_lines = {}
-      for l in string.gmatch(n.text.."\n", "([^\n]*)\n") do
-        add(code_lines, l)
+      for code_line in string.gmatch(node.text .. "\n", "([^\n]*)\n") do
+        add(code_lines, code_line)
       end
       local block_h = #code_lines * LINE_H + 6
       y += 2
-      add(out, { tag="code", lines=code_lines, y=y, h=block_h })
+      add(render_items, { tag="code", lines=code_lines, y=y, h=block_h })
       y += block_h + 4
     end
   end
-  return out, y + 5
+
+  return render_items, y + 5
 end
 
--- ============================
--- Domain lookup
--- ============================
-function load_domains()
+:: domains.lua
+--[[pod_format="raw"]]
+-- Manages the local domain-to-user-id lookup table, persisted to podnet
+
+known_domains = {}
+
+function load_known_domains()
   local src = fetch(DOMAINS_FILE)
   if src and src ~= "" then
-    domains = unpod(src) or {}
+    known_domains = unpod(src) or {}
   end
 end
 
-function save_domains()
-  store(DOMAINS_FILE, pod(domains))
+function save_known_domains()
+  store(DOMAINS_FILE, pod(known_domains))
+end
+
+function register_domain_if_new(domain, user_id)
+  if user_id and not known_domains[domain] then
+    known_domains[domain] = user_id
+    save_known_domains()
+  end
 end
 
 function resolve_url(input)
   if string.match(input, "^podnet://") then return input end
-  -- accept "domain/file" or just "domain" (defaults to index.podweb)
   local domain, file = string.match(input, "^([^/]+)/(.+)")
   if not domain then
     domain = input
     file   = "index.podweb"
   end
-  local user_id = domains[domain]
+  local user_id = known_domains[domain]
   if user_id then
     return "podnet://" .. user_id .. "/" .. file
   end
-  return nil  -- unknown domain
+  return nil
 end
 
--- ============================
--- Fetch + parse + layout
--- ============================
-function do_fetch()
-  scroll_y = 0
-  items    = {}
-  local src = fetch(url)
-  if src and src ~= "" then
-    local nodes, meta = parse(src)
-    items, total_h = do_layout(nodes)
-    -- register domain in local lookup if new
-    local display = url
-    if meta.domain then
-      local user_id = string.match(url, "podnet://(%d+)/")
-      if user_id and not domains[meta.domain] then
-        domains[meta.domain] = user_id
-        save_domains()
-      end
-      local file = string.match(url, "podnet://%d+/(.+)")
-      display = meta.domain .. "/" .. (file or "")
-    end
-    if url_bar and url_bar.set_text then url_bar:set_text(display) end
-  else
-    if url_bar and url_bar.set_text then url_bar:set_text(url) end
-  end
-end
+:: renderer.lua
+--[[pod_format="raw"]]
+-- Draws the address bar, buttons, and page content
 
--- ============================
--- Navigation helpers
--- ============================
-function link_hover(item)
+function is_over_button(b)
   local mx, my = mouse()
-  local iy = BAR_H + 1 + item.y - scroll_y
-  return mx >= PAD_X and mx < PAD_X + text_width(item.text)
-     and my >= iy    and my < iy + LINE_H
+  return mx >= b.x and mx < b.x + b.w
+     and my >= b.y and my < b.y + b.h
 end
 
-function navigate(item)
-  local cur_user = string.match(url, "podnet://(%d+)/")
-  local user_id  = item.user or cur_user
-  local file     = item.file or "index.podweb"
-  url = "podnet://"..user_id.."/"..file
-  do_fetch()
-end
-
--- ============================
--- Button helpers
--- ============================
-function btn_over(b)
-  local mx, my = mouse()
-  return mx >= b.x and mx < b.x+b.w
-     and my >= b.y and my < b.y+b.h
-end
-
-function draw_btn(b)
-  local hov = btn_over(b)
-  rectfill(b.x, b.y, b.x+b.w-1, b.y+b.h-1, hov and 6 or 2)
+function draw_button(b)
+  local hovered = is_over_button(b)
+  rectfill(b.x, b.y, b.x+b.w-1, b.y+b.h-1, hovered and 6 or 2)
   rect    (b.x, b.y, b.x+b.w-1, b.y+b.h-1, 5)
-  local tx = b.x + flr((b.w - #b.label*4) / 2)
+  local tx = b.x + flr((b.w - #b.label * 4) / 2)
   local ty = b.y + flr((b.h - 5) / 2)
-  print(b.label, tx, ty, hov and 0 or 6)
+  print(b.label, tx, ty, hovered and 0 or 6)
 end
 
--- ============================
--- Init
--- ============================
-function _init()
-  window({ width=W, height=H, title="Podweb Browser" })
-  load_domains()
-
-  url_bar = gui:attach_text_editor{
-    x      = BTN_R.x + BTN_R.w + 4,
-    y      = 2,
-    width  = W - BTN_R.x - BTN_R.w - 8,
-    height = BAR_H - 4,
-    key_callback = {
-      ["enter"] = function(self, k)
-        local input = self:get_text()[1]
-        if input and input ~= "" then
-          url = resolve_url(input) or input
-          do_fetch()
-        end
-        return nil  -- don't insert a newline
-      end
-    }
-  }
-  if url_bar.set_text then url_bar:set_text(url) end
-
-  do_fetch()
-end
-
--- ============================
--- Update
--- ============================
-function _update()
-  local _, _, mb, _, mwy = mouse()
-
-  -- scroll with mouse wheel or arrow keys (clamped)
-  local max_scroll = max(0, total_h - (H - BAR_H - 1))
-  if mwy and mwy ~= 0 then
-    scroll_y = mid(0, scroll_y - mwy * 8, max_scroll)
-  end
-  if btn(2) then scroll_y = max(0, scroll_y - 3) end
-  if btn(3) then scroll_y = min(max_scroll, scroll_y + 3) end
-
-  -- click release: check reload button then links
-  if (prev_mb & 1) == 1 and (mb & 1) == 0 then
-    if btn_over(BTN_R) then
-      do_fetch()
-    else
-      for _, item in ipairs(items) do
-        if item.tag == "link" and link_hover(item) then
-          navigate(item)
-          break
-        end
-      end
-    end
-  end
-  prev_mb = mb
-  gui:update_all()
-end
-
--- ============================
--- Draw
--- ============================
-function _draw()
-  cls(1)
-
-  -- address bar (url_bar widget drawn automatically by gui)
+function draw_address_bar()
   rectfill(0, 0, W-1, BAR_H-1, 0)
-  draw_btn(BTN_R)
+  draw_button(RELOAD_BTN)
   line(0, BAR_H, W-1, BAR_H, 5)
+end
 
-  -- content area (clipped)
+function is_link_hovered(item)
+  local mx, my = mouse()
+  local screen_y = BAR_H + 1 + item.y - scroll_y
+  return mx >= PAD_X and mx < PAD_X + measure_text(item.text)
+     and my >= screen_y and my < screen_y + LINE_H
+end
+
+function draw_content()
   clip(0, BAR_H+1, W, H-BAR_H-1)
-  for _, item in ipairs(items) do
-    local y = BAR_H + 1 + item.y - scroll_y
+  for _, item in ipairs(render_items) do
+    local y      = BAR_H + 1 + item.y - scroll_y
     local item_h = item.h or LINE_H
     if y + item_h > BAR_H and y < H + LINE_H then
       if item.tag == "h1" then
@@ -351,14 +343,14 @@ function _draw()
       elseif item.tag == "h2" then
         print(item.text, PAD_X, y, 12)
       elseif item.tag == "link" then
-        local col = link_hover(item) and 7 or 12
+        local col = is_link_hovered(item) and 7 or 12
         print(item.text, PAD_X, y, col)
-        line(PAD_X, y+LINE_H-1, PAD_X+text_width(item.text)-1, y+LINE_H-1, col)
+        line(PAD_X, y+LINE_H-1, PAD_X+measure_text(item.text)-1, y+LINE_H-1, col)
       elseif item.tag == "code" then
-        rectfill(PAD_X-2, y,   PAD_X+CONT_W+2, y+item.h-1, 0)
-        rect    (PAD_X-2, y,   PAD_X+CONT_W+2, y+item.h-1, 5)
-        for li, l in ipairs(item.lines) do
-          print(l, PAD_X+2, y+3+(li-1)*LINE_H, 11)
+        rectfill(PAD_X-2, y, PAD_X+CONT_W+2, y+item.h-1, 0)
+        rect    (PAD_X-2, y, PAD_X+CONT_W+2, y+item.h-1, 5)
+        for li, code_line in ipairs(item.lines) do
+          print(code_line, PAD_X+2, y+3+(li-1)*LINE_H, 11)
         end
       else
         print(item.text, PAD_X, y, 6)
@@ -366,32 +358,7 @@ function _draw()
     end
   end
   clip()
-  
-  gui:draw_all()
 end
 
 :: .info.pod
---[[pod,created="2026-03-27 05:34:19",modified="2026-04-16 17:41:48",runtime=25,workspaces={{location="main.lua#289",workspace_index=1},{location="gfx/0.gfx",workspace_index=2},{location="map/0.map",workspace_index=3},{location="sfx/0.sfx",workspace_index=4}}]]
-:: gfx/.info.pod
---[[pod,created="2026-03-27 05:34:19",modified="2026-04-16 17:41:48"]]
-:: gfx/0.gfx
-b64$LS1bW3BvZCxjcmVhdGVkPSIyMDI1LTAxLTE3IDEwOjM1OjQ4Iixtb2RpZmllZD0iMjAyNS0w
-MS0xNyAxMDozNzo0NCIscmV2aXNpb249Ml1dbHo0AH4AAAASMQAA8yF7WzBdPXtibXA9cHh1AEMg
-EBAE8FYHEAfAF9AXwAcQB-BWLGZsYWdzPTAscGFuX3gIAMt5PTAsem9vbT04fSw_AB-wMQD-----
------------------------------------------------------------XUG09OH19
-:: map/.info.pod
---[[pod,created="2026-03-27 05:34:19",modified="2026-04-16 17:41:48"]]
-:: map/0.map
-b64$LS1bW3BvZCxjcmVhdGVkPSIyMDI1LTAxLTE3IDEwOjM1OjQ4Iixtb2RpZmllZD0iMjAyNi0w
-NC0xNSAxNjowMToxNiIscmV2aXNpb249Ml1dbHo0AEwAAABQAAAA8Rx7e2JtcD1weHUATIAgIAD-
-AAD---8DLGhpZGRlbj1mYWxzZSxwYW5feD0wCADSeT0wLHRpbGVfaD0xNgoAEHcKAIB6b29tPTF9
-fQ==
-:: sfx/.info.pod
---[[pod,created="2026-03-27 05:34:19",modified="2026-04-16 17:41:48"]]
-:: sfx/0.sfx
-b64$LS1bW3BvZCxjcmVhdGVkPSIyMDI1LTA3LTMxIDA4OjMwOjI4Iixtb2RpZmllZD0iMjAyNS0w
-Ny0zMSAwODozMDoyOCIscmV2aXNpb249MF1dbHo0AKAAAAALCgAA-zBweHUAAygAAAQABA9AEAIO
-AAGgASACoA4ADxAADfDKAQIDQA8PkAQFBgdADJAICQoLQAyQDwwPDQ8ODEAM8P8BAOv-J6oBEAYP
-MBABIAEgAfAAAhACDhABIA8hIAEwD0Dwww8oD--wxg-4Cg--D4AP9w8NAfAJARAGDjAA------_9
-H-8BAKzPyA9AAA8QQP--sPD-AQD-6lD-----KQ==
-:: [eoc]
+--[[pod,created="2026-04-16 00:00:00",modified="2026-04-16 00:00:00",runtime=25,workspaces={{location="main.lua",workspace_index=1},{location="config.lua",workspace_index=1},{location="parser.lua",workspace_index=1},{location="layout.lua",workspace_index=1},{location="domains.lua",workspace_index=1},{location="renderer.lua",workspace_index=1}}]]
