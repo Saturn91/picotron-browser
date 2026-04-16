@@ -46,4 +46,7 @@ No central server is involved - the mapping lives entirely on your own account.
 [-p]
 
 [link file=about.podweb] Learn more about this project
-[link file=how-to.podweb] Want to contribute? Create your own page
+
+[h2] Want to contribute yoourself?
+
+[link file=how-to.podweb] Create your own page

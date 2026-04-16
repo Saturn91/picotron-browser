@@ -73,12 +73,11 @@ name and let them navigate to it by name in the future.
 [h2] Step 2 - publish your page
 
 [p-]
-Open the Picotron terminal and run the publish command to upload your
-file to your podnet storage:
+Open the picotron terminal and run the following:
 [-p]
 
 [code-]
-publish index.podweb index.podweb
+store("potnet://<YOUR-USER-ID>/index.podweb", fetch("<PATH-TO-YOUR-FILE>"))
 [-code]
 
 [p-]
