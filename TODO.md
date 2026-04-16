@@ -82,7 +82,7 @@ Resizable window. Content area reflows on resize.
 - [x] Design address bar (top of window: back/fwd buttons + address input)
 - [ ] Scrollbar indicator
 - [ ] Bookmarks — save/load a list of `{label, user_id, filepath}` to own podnet
-- [ ] Homepage — default page shown on launch (own podweb page, or a directory)
+- [x] Homepage — default page shown on launch (own podweb page, or a directory)
 
 ### local builder / previewer / publish
 - [ ] create a local previewer for local .podweb files
@@ -90,8 +90,8 @@ Resizable window. Content area reflows on resize.
 
 ### Future / Stretch
 - [x] `[link]` tag with clickable hit regions
-- [ ] `[img]` tag — pod-encoded sprite embedded in .podweb file
-- [ ] `[code]` tag — monospace / syntax-highlighted block
+- [x] `[img]` tag — pod-encoded sprite embedded in .podweb file
+- [x] `[code]` tag — monospace / syntax-highlighted block
 - [ ] `[hr]` tag — horizontal rule separator
 - [ ] Browser itself hosted on podnet so updates propagate to users automatically
 - [ ] Directory page — a well-known podnet page listing known sites

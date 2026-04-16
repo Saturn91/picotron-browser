@@ -117,6 +117,23 @@ it immediately using your user ID:
 podnet://YOUR_USER_ID/index.podweb
 [-code]
 
+[h2] Share your page
+
+[p-]
+Once your page is live, share this address with other users so they can
+visit it in the Podweb browser:
+[-p]
+
+[code-]
+podnet://YOUR_USER_ID/index.podweb
+[-code]
+
+[p-]
+Replace YOUR_USER_ID with the number you got from stat(64). Anyone who
+visits your page will have the browser remember your domain name
+automatically, so they can use it as a shortcut from that point on.
+[-p]
+
 [h2] Bonus - the publish tool
 
 [p-]

@@ -16,7 +16,11 @@ LINE_H       = 8
 CHAR_W       = 4
 
 function get_users_domain_file()
-  return "podnet://" .. stat(64) .. "/domains.lookup"
+  local uid = stat(64)
+  if uid then
+    return "podnet://" .. uid .. "/domains.lookup"
+  end
+  return ""
 end
 
 DOMAINS_FILE = get_users_domain_file()
@@ -31,6 +35,7 @@ RELOAD_BTN   = { x=4, y=2, w=36, h=12, label="Reload" }
 known_domains = {}
 
 function load_known_domains()
+  if DOMAINS_FILE == "" then return end
   local src = fetch(DOMAINS_FILE)
   if src and src ~= "" then
     known_domains = unpod(src) or {}
@@ -38,10 +43,12 @@ function load_known_domains()
 end
 
 function save_known_domains()
+  if DOMAINS_FILE == "" then return end
   store(DOMAINS_FILE, pod(known_domains))
 end
 
 function register_domain_if_new(domain, user_id)
+  if DOMAINS_FILE == "" then return end
   if user_id and not known_domains[domain] then
     known_domains[domain] = user_id
     save_known_domains()
