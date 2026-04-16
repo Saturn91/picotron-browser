@@ -4,105 +4,6 @@ version 2
 :: gfx/
 :: map/
 :: sfx/
-:: main.lua
---[[pod_format="raw"]]
--- Podweb Browser v0.2 — entry point, state, and lifecycle
-include("config.lua")
-include("parser.lua")
-include("layout.lua")
-include("domains.lua")
-include("renderer.lua")
-
-gui            = create_gui()
-current_url    = HOME_URL
-render_items   = {}
-content_height = 0
-scroll_y       = 0
-prev_mouse_btn = 0
-url_bar        = nil
-
-function load_page()
-  scroll_y     = 0
-  render_items = {}
-  local src = fetch(current_url)
-  if src and src ~= "" then
-    local nodes, meta    = parse_podweb(src)
-    render_items, content_height = layout_nodes(nodes)
-    if meta.domain then
-      register_domain_if_new(meta.domain, string.match(current_url, "podnet://(%d+)/"))
-    end
-    local display = meta.domain
-      and (meta.domain .. "/" .. (string.match(current_url, "podnet://%d+/(.+)") or ""))
-      or  current_url
-    if url_bar and url_bar.set_text then url_bar:set_text(display) end
-  else
-    if url_bar and url_bar.set_text then url_bar:set_text(current_url) end
-  end
-end
-
-function follow_link(item)
-  local cur_user = string.match(current_url, "podnet://(%d+)/")
-  current_url = "podnet://" .. (item.user or cur_user) .. "/" .. (item.file or "index.podweb")
-  load_page()
-end
-
-function _init()
-  window({ width=W, height=H, title="Podweb Browser" })
-  load_known_domains()
-
-  url_bar = gui:attach_text_editor{
-    x      = RELOAD_BTN.x + RELOAD_BTN.w + 4,
-    y      = 2,
-    width  = W - RELOAD_BTN.x - RELOAD_BTN.w - 8,
-    height = BAR_H - 4,
-    key_callback = {
-      ["enter"] = function(self, k)
-        local input = self:get_text()[1]
-        if input and input ~= "" then
-          current_url = resolve_url(input) or input
-          load_page()
-        end
-        return nil
-      end
-    }
-  }
-  if url_bar.set_text then url_bar:set_text(current_url) end
-  load_page()
-end
-
-function _update()
-  local _, _, mb, _, mwy = mouse()
-  local max_scroll = max(0, content_height - (H - BAR_H - 1))
-
-  if mwy and mwy ~= 0 then
-    scroll_y = mid(0, scroll_y - mwy * 8, max_scroll)
-  end
-  if btn(2) then scroll_y = max(0, scroll_y - 3) end
-  if btn(3) then scroll_y = min(max_scroll, scroll_y + 3) end
-
-  if (prev_mouse_btn & 1) == 1 and (mb & 1) == 0 then
-    if is_over_button(RELOAD_BTN) then
-      load_page()
-    else
-      for _, item in ipairs(render_items) do
-        if item.tag == "link" and is_link_hovered(item) then
-          follow_link(item)
-          break
-        end
-      end
-    end
-  end
-  prev_mouse_btn = mb
-  gui:update_all()
-end
-
-function _draw()
-  cls(1)
-  draw_address_bar()
-  draw_content()
-  gui:draw_all()
-end
-
 :: config.lua
 --[[pod_format="raw"]]
 -- Screen dimensions, layout metrics, and network configuration
@@ -122,6 +23,93 @@ DOMAINS_FILE = get_users_domain_file()
 HOME_URL     = "podnet://48932/index.podweb"
 
 RELOAD_BTN   = { x=4, y=2, w=36, h=12, label="Reload" }
+
+:: domains.lua
+--[[pod_format="raw"]]
+-- Manages the local domain-to-user-id lookup table, persisted to podnet
+
+known_domains = {}
+
+function load_known_domains()
+  local src = fetch(DOMAINS_FILE)
+  if src and src ~= "" then
+    known_domains = unpod(src) or {}
+  end
+end
+
+function save_known_domains()
+  store(DOMAINS_FILE, pod(known_domains))
+end
+
+function register_domain_if_new(domain, user_id)
+  if user_id and not known_domains[domain] then
+    known_domains[domain] = user_id
+    save_known_domains()
+  end
+end
+
+function resolve_url(input)
+  if string.match(input, "^podnet://") then return input end
+  local domain, file = string.match(input, "^([^/]+)/(.+)")
+  if not domain then
+    domain = input
+    file   = "index.podweb"
+  end
+  local user_id = known_domains[domain]
+  if user_id then
+    return "podnet://" .. user_id .. "/" .. file
+  end
+  return nil
+end
+
+:: layout.lua
+--[[pod_format="raw",created="2026-04-16 21:10:06",modified="2026-04-16 21:13:13",revision=3]]
+-- Converts parsed nodes into positioned render items with absolute y coordinates
+
+function layout_nodes(nodes)
+  local render_items, y = {}, 4
+
+  for idx, node in ipairs(nodes) do
+    if node.tag == "h1" then
+      if idx > 1 then y += 8 end
+      add(render_items, { tag="h1", text=node.text, y=y })
+      y += LINE_H + 4
+
+    elseif node.tag == "h2" then
+      if idx > 1 then y += 6 end
+      add(render_items, { tag="h2", text=node.text, y=y })
+      y += LINE_H + 3
+
+    elseif node.tag == "p" then
+      for _, wrapped_line in ipairs(wrap_text(node.text, CONT_W)) do
+        add(render_items, { tag="p", text=wrapped_line, y=y })
+        y += LINE_H
+      end
+      y += 4
+
+    elseif node.tag == "link" then
+      y += 2
+      add(render_items, { tag="link", text=node.text, user=node.user, file=node.file, y=y })
+      y += LINE_H + 2
+
+    elseif node.tag == "code" then
+      local code_lines = {}
+      for code_line in string.gmatch(node.text .. "\n", "([^\n]*)\n") do
+        add(code_lines, code_line)
+      end
+      local block_h = #code_lines * LINE_H + 6
+      y += 2
+      add(render_items, { tag="code", lines=code_lines, y=y, h=block_h })
+      y += block_h + 4
+    end
+  end
+
+  local bottom = 0
+  for _, item in ipairs(render_items) do
+    bottom = max(bottom, item.y + (item.h or LINE_H))
+  end
+  return render_items, bottom + 32
+end
 
 :: parser.lua
 --[[pod_format="raw"]]
@@ -216,89 +204,6 @@ function parse_podweb(src)
   return nodes, meta
 end
 
-:: layout.lua
---[[pod_format="raw"]]
--- Converts parsed nodes into positioned render items with absolute y coordinates
-
-function layout_nodes(nodes)
-  local render_items, y = {}, 4
-
-  for idx, node in ipairs(nodes) do
-    if node.tag == "h1" then
-      if idx > 1 then y += 8 end
-      add(render_items, { tag="h1", text=node.text, y=y })
-      y += LINE_H + 4
-
-    elseif node.tag == "h2" then
-      if idx > 1 then y += 6 end
-      add(render_items, { tag="h2", text=node.text, y=y })
-      y += LINE_H + 3
-
-    elseif node.tag == "p" then
-      for _, wrapped_line in ipairs(wrap_text(node.text, CONT_W)) do
-        add(render_items, { tag="p", text=wrapped_line, y=y })
-        y += LINE_H
-      end
-      y += 4
-
-    elseif node.tag == "link" then
-      y += 2
-      add(render_items, { tag="link", text=node.text, user=node.user, file=node.file, y=y })
-      y += LINE_H + 2
-
-    elseif node.tag == "code" then
-      local code_lines = {}
-      for code_line in string.gmatch(node.text .. "\n", "([^\n]*)\n") do
-        add(code_lines, code_line)
-      end
-      local block_h = #code_lines * LINE_H + 6
-      y += 2
-      add(render_items, { tag="code", lines=code_lines, y=y, h=block_h })
-      y += block_h + 4
-    end
-  end
-
-  return render_items, y + 5
-end
-
-:: domains.lua
---[[pod_format="raw"]]
--- Manages the local domain-to-user-id lookup table, persisted to podnet
-
-known_domains = {}
-
-function load_known_domains()
-  local src = fetch(DOMAINS_FILE)
-  if src and src ~= "" then
-    known_domains = unpod(src) or {}
-  end
-end
-
-function save_known_domains()
-  store(DOMAINS_FILE, pod(known_domains))
-end
-
-function register_domain_if_new(domain, user_id)
-  if user_id and not known_domains[domain] then
-    known_domains[domain] = user_id
-    save_known_domains()
-  end
-end
-
-function resolve_url(input)
-  if string.match(input, "^podnet://") then return input end
-  local domain, file = string.match(input, "^([^/]+)/(.+)")
-  if not domain then
-    domain = input
-    file   = "index.podweb"
-  end
-  local user_id = known_domains[domain]
-  if user_id then
-    return "podnet://" .. user_id .. "/" .. file
-  end
-  return nil
-end
-
 :: renderer.lua
 --[[pod_format="raw"]]
 -- Draws the address bar, buttons, and page content
@@ -361,4 +266,59 @@ function draw_content()
 end
 
 :: .info.pod
---[[pod,created="2026-04-16 00:00:00",modified="2026-04-16 00:00:00",runtime=25,workspaces={{location="main.lua",workspace_index=1},{location="config.lua",workspace_index=1},{location="parser.lua",workspace_index=1},{location="layout.lua",workspace_index=1},{location="domains.lua",workspace_index=1},{location="renderer.lua",workspace_index=1}}]]
+--[[pod,created="2026-04-16 00:00:00",modified="2026-04-16 21:15:38",runtime=25,workspaces={{location="main.lua#89",workspace_index=1},{location="config.lua",workspace_index=1},{location="parser.lua",workspace_index=1},{location="layout.lua#1",workspace_index=1},{location="domains.lua",workspace_index=1},{location="renderer.lua",workspace_index=1}}]]
+:: gfx/.info.pod
+--[[pod,created="2026-04-16 21:08:59",modified="2026-04-16 21:15:38"]]
+:: main.lua
+b64$LS1bW3BvZF9mb3JtYXQ9InJhdyIsY3JlYXRlZD0iMjAyNi0wNC0xNiAyMToxNToyOCIsbW9k
+aWZpZWQ9IjIwMjYtMDQtMTYgMjE6MTU6MzgiLHJldmlzaW9uPTFdXQotLSBQb2R3ZWIgQnJvd3Nl
+ciB2MC4yIOKAlCBlbnRyeSBwb2ludCwgc3RhdGUsIGFuZCBsaWZlY3ljbGUKaW5jbHVkZSgiY29u
+ZmlnLmx1YSIpCmluY2x1ZGUoInBhcnNlci5sdWEiKQppbmNsdWRlKCJsYXlvdXQubHVhIikKaW5j
+bHVkZSgiZG9tYWlucy5sdWEiKQppbmNsdWRlKCJyZW5kZXJlci5sdWEiKQoKZ3VpICAgICAgICAg
+ICAgPSBjcmVhdGVfZ3VpKCkKY3VycmVudF91cmwgICAgPSBIT01FX1VSTApyZW5kZXJfaXRlbXMg
+ICA9IHt9CmNvbnRlbnRfaGVpZ2h0ID0gMApzY3JvbGxfeSAgICAgICA9IDAKcHJldl9tb3VzZV9i
+dG4gPSAwCnVybF9iYXIgICAgICAgID0gbmlsCgpmdW5jdGlvbiBsb2FkX3BhZ2UoKQogIHNjcm9s
+bF95ICAgICA9IDAKICByZW5kZXJfaXRlbXMgPSB7fQogIGxvY2FsIHNyYyA9IGZldGNoKGN1cnJl
+bnRfdXJsKQogIGlmIHNyYyBhbmQgc3JjIH49ICIiIHRoZW4KICAgIGxvY2FsIG5vZGVzLCBtZXRh
+ICAgID0gcGFyc2VfcG9kd2ViKHNyYykKICAgIHJlbmRlcl9pdGVtcywgY29udGVudF9oZWlnaHQg
+PSBsYXlvdXRfbm9kZXMobm9kZXMpCiAgICBpZiBtZXRhLmRvbWFpbiB0aGVuCiAgICAgIHJlZ2lz
+dGVyX2RvbWFpbl9pZl9uZXcobWV0YS5kb21haW4sIHN0cmluZy5tYXRjaChjdXJyZW50X3VybCwg
+InBvZG5ldDovLyglZCspLyIpKQogICAgZW5kCiAgICBsb2NhbCBkaXNwbGF5ID0gbWV0YS5kb21h
+aW4KICAgICAgYW5kIChtZXRhLmRvbWFpbiAuLiAiLyIgLi4gKHN0cmluZy5tYXRjaChjdXJyZW50
+X3VybCwgInBvZG5ldDovLyVkKy8oLispIikgb3IgIiIpKQogICAgICBvciAgY3VycmVudF91cmwK
+ICAgIGlmIHVybF9iYXIgYW5kIHVybF9iYXIuc2V0X3RleHQgdGhlbiB1cmxfYmFyOnNldF90ZXh0
+KGRpc3BsYXkpIGVuZAogIGVsc2UKICAgIGlmIHVybF9iYXIgYW5kIHVybF9iYXIuc2V0X3RleHQg
+dGhlbiB1cmxfYmFyOnNldF90ZXh0KGN1cnJlbnRfdXJsKSBlbmQKICBlbmQKZW5kCgpmdW5jdGlv
+biBmb2xsb3dfbGluayhpdGVtKQogIGxvY2FsIGN1cl91c2VyID0gc3RyaW5nLm1hdGNoKGN1cnJl
+bnRfdXJsLCAicG9kbmV0Oi8vKCVkKykvIikKICBjdXJyZW50X3VybCA9ICJwb2RuZXQ6Ly8iIC4u
+IChpdGVtLnVzZXIgb3IgY3VyX3VzZXIpIC4uICIvIiAuLiAoaXRlbS5maWxlIG9yICJpbmRleC5w
+b2R3ZWIiKQogIGxvYWRfcGFnZSgpCmVuZAoKZnVuY3Rpb24gX2luaXQoKQogIHdpbmRvdyh7IHdp
+ZHRoPVcsIGhlaWdodD1ILCB0aXRsZT0iUG9kd2ViIEJyb3dzZXIiIH0pCiAgbG9hZF9rbm93bl9k
+b21haW5zKCkKCiAgdXJsX2JhciA9IGd1aTphdHRhY2hfdGV4dF9lZGl0b3J7CiAgICB4ICAgICAg
+PSBSRUxPQURfQlROLnggKyBSRUxPQURfQlROLncgKyA0LAogICAgeSAgICAgID0gMiwKICAgIHdp
+ZHRoICA9IFcgLSBSRUxPQURfQlROLnggLSBSRUxPQURfQlROLncgLSA4LAogICAgaGVpZ2h0ID0g
+QkFSX0ggLSA0LAogICAga2V5X2NhbGxiYWNrID0gewogICAgICBbImVudGVyIl0gPSBmdW5jdGlv
+bihzZWxmLCBrKQogICAgICAgIGxvY2FsIGlucHV0ID0gc2VsZjpnZXRfdGV4dCgpWzFdCiAgICAg
+ICAgaWYgaW5wdXQgYW5kIGlucHV0IH49ICIiIHRoZW4KICAgICAgICAgIGN1cnJlbnRfdXJsID0g
+cmVzb2x2ZV91cmwoaW5wdXQpIG9yIGlucHV0CiAgICAgICAgICBsb2FkX3BhZ2UoKQogICAgICAg
+IGVuZAogICAgICAgIHJldHVybiBuaWwKICAgICAgZW5kCiAgICB9CiAgfQogIGlmIHVybF9iYXIu
+c2V0X3RleHQgdGhlbiB1cmxfYmFyOnNldF90ZXh0KGN1cnJlbnRfdXJsKSBlbmQKICBsb2FkX3Bh
+Z2UoKQplbmQKCmZ1bmN0aW9uIF91cGRhdGUoKQogIGxvY2FsIF8sIF8sIG1iLCBfLCBtd3kgPSBt
+b3VzZSgpCiAgbG9jYWwgbWF4X3Njcm9sbCA9IG1heCgwLCBjb250ZW50X2hlaWdodCAtIChIIC0g
+QkFSX0ggLSAxKSkKCiAgaWYgbXd5IGFuZCBtd3kgfj0gMCB0aGVuCiAgICBzY3JvbGxfeSA9IG1p
+ZCgwLCBzY3JvbGxfeSAtIG13eSAqIDgsIG1heF9zY3JvbGwpCiAgZW5kCiAgaWYgYnRuKDIpIHRo
+ZW4gc2Nyb2xsX3kgPSBtYXgoMCwgc2Nyb2xsX3kgLSAzKSBlbmQKICBpZiBidG4oMykgdGhlbiBz
+Y3JvbGxfeSA9IG1pbihtYXhfc2Nyb2xsLCBzY3JvbGxfeSArIDMpIGVuZAoKICBpZiAocHJldl9t
+b3VzZV9idG4gJiAxKSA9PSAxIGFuZCAobWIgJiAxKSA9PSAwIHRoZW4KICAgIGlmIGlzX292ZXJf
+YnV0dG9uKFJFTE9BRF9CVE4pIHRoZW4KICAgICAgbG9hZF9wYWdlKCkKICAgIGVsc2UKICAgICAg
+Zm9yIF8sIGl0ZW0gaW4gaXBhaXJzKHJlbmRlcl9pdGVtcykgZG8KICAgICAgICBpZiBpdGVtLnRh
+ZyA9PSAibGluayIgYW5kIGlzX2xpbmtfaG92ZXJlZChpdGVtKSB0aGVuCiAgICAgICAgICBmb2xs
+b3dfbGluayhpdGVtKQogICAgICAgICAgYnJlYWsKICAgICAgICBlbmQKICAgICAgZW5kCiAgICBl
+bmQKICBlbmQKICBwcmV2X21vdXNlX2J0biA9IG1iCiAgZ3VpOnVwZGF0ZV9hbGwoKQplbmQKCmZ1
+bmN0aW9uIF9kcmF3KCkKICBjbHMoMSkKICBkcmF3X2FkZHJlc3NfYmFyKCkKICBkcmF3X2NvbnRl
+bnQoKQogIGd1aTpkcmF3X2FsbCgpCmVuZA==
+:: map/.info.pod
+--[[pod,created="2026-04-16 21:08:59",modified="2026-04-16 21:15:38"]]
+:: sfx/.info.pod
+--[[pod,created="2026-04-16 21:08:59",modified="2026-04-16 21:15:38"]]
+:: [eoc]

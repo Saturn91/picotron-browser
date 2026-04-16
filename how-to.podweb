@@ -91,7 +91,7 @@ podnet://YOUR_USER_ID/index.podweb
 [-code]
 
 [p-]
-You can find your user ID by typing stat in the Picotron terminal
+You can find your user ID by typing stat(64) in the Picotron terminal
 and looking for your account number.
 [-p]
 
