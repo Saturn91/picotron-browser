@@ -20,6 +20,9 @@ local CONT_W   = W - PAD_X * 2
 local LINE_H   = 8
 local CHAR_W   = 4   -- approx px per character (used for decorative underline only)
 
+local MY_ID      = "48932"
+local DOMAINS_FILE = "podnet://" .. MY_ID .. "/domains.lookup"
+
 -- measure actual pixel width of a string using print() off the top of the screen
 function text_width(s)
   return print(s, 0, -20)
@@ -34,6 +37,7 @@ local total_h  = 0
 local scroll_y = 0
 local prev_mb  = 0
 local url_bar  = nil  -- set in _init()
+local domains  = {}   -- domain -> user_id, loaded from DOMAINS_FILE
 
 local BTN_R = { x=4, y=2, w=36, h=12, label="Reload" }
 
@@ -41,7 +45,7 @@ local BTN_R = { x=4, y=2, w=36, h=12, label="Reload" }
 -- Parser
 -- ============================
 function parse(src)
-  local nodes, lines = {}, {}
+  local nodes, lines, meta = {}, {}, {}
   for l in string.gmatch(src.."\n", "([^\n]*)\n") do
     add(lines, l)
   end
@@ -50,10 +54,12 @@ function parse(src)
   while i <= #lines do
     local l = lines[i]
 
-    -- skip [meta-]...[-meta]
+    -- parse [meta-]...[-meta] into key/value table
     if string.match(l, "^%[meta%-%]") then
       i += 1
       while i <= #lines and not string.match(lines[i], "^%[%-meta%]") do
+        local key, val = string.match(lines[i], "^(%w+):%s*(.+)")
+        if key then meta[key] = val end
         i += 1
       end
       i += 1  -- skip [-meta]
@@ -68,11 +74,17 @@ function parse(src)
         add(parts, lines[i])
         i += 1
       end
-      -- join non-empty lines with a space for word wrapping
+      -- code blocks preserve line structure; others join for word wrap
       local text = ""
-      for _, p in ipairs(parts) do
-        if p ~= "" then
-          text = text == "" and p or (text.." "..p)
+      if tag == "code" then
+        for j, p in ipairs(parts) do
+          text = j == 1 and p or (text.."\n"..p)
+        end
+      else
+        for _, p in ipairs(parts) do
+          if p ~= "" then
+            text = text == "" and p or (text.." "..p)
+          end
         end
       end
       add(nodes, { tag=tag, text=text })
@@ -104,7 +116,7 @@ function parse(src)
     end
   end
 
-  return nodes
+  return nodes, meta
 end
 
 -- ============================
@@ -151,9 +163,47 @@ function do_layout(nodes)
       y += 2
       add(out, { tag="link", text=n.text, user=n.user, file=n.file, y=y })
       y += LINE_H + 2
+    elseif n.tag == "code" then
+      local code_lines = {}
+      for l in string.gmatch(n.text.."\n", "([^\n]*)\n") do
+        add(code_lines, l)
+      end
+      local block_h = #code_lines * LINE_H + 6
+      y += 2
+      add(out, { tag="code", lines=code_lines, y=y, h=block_h })
+      y += block_h + 4
     end
   end
   return out, y
+end
+
+-- ============================
+-- Domain lookup
+-- ============================
+function load_domains()
+  local src = fetch(DOMAINS_FILE)
+  if src and src ~= "" then
+    domains = unpod(src) or {}
+  end
+end
+
+function save_domains()
+  store(DOMAINS_FILE, pod(domains))
+end
+
+function resolve_url(input)
+  if string.match(input, "^podnet://") then return input end
+  -- accept "domain/file" or just "domain" (defaults to index.podweb)
+  local domain, file = string.match(input, "^([^/]+)/(.+)")
+  if not domain then
+    domain = input
+    file   = "index.podweb"
+  end
+  local user_id = domains[domain]
+  if user_id then
+    return "podnet://" .. user_id .. "/" .. file
+  end
+  return nil  -- unknown domain
 end
 
 -- ============================
@@ -162,10 +212,24 @@ end
 function do_fetch()
   scroll_y = 0
   items    = {}
-  if url_bar and url_bar.set_text then url_bar:set_text(url) end
   local src = fetch(url)
   if src and src ~= "" then
-    items, total_h = do_layout(parse(src))
+    local nodes, meta = parse(src)
+    items, total_h = do_layout(nodes)
+    -- register domain in local lookup if new
+    local display = url
+    if meta.domain then
+      local user_id = string.match(url, "podnet://(%d+)/")
+      if user_id and not domains[meta.domain] then
+        domains[meta.domain] = user_id
+        save_domains()
+      end
+      local file = string.match(url, "podnet://%d+/(.+)")
+      display = meta.domain .. "/" .. (file or "")
+    end
+    if url_bar and url_bar.set_text then url_bar:set_text(display) end
+  else
+    if url_bar and url_bar.set_text then url_bar:set_text(url) end
   end
 end
 
@@ -210,6 +274,7 @@ end
 -- ============================
 function _init()
   window({ width=W, height=H, title="Podweb Browser" })
+  load_domains()
 
   url_bar = gui:attach_text_editor{
     x      = BTN_R.x + BTN_R.w + 4,
@@ -220,7 +285,7 @@ function _init()
       ["enter"] = function(self, k)
         local input = self:get_text()[1]
         if input and input ~= "" then
-          url = input
+          url = resolve_url(input) or input
           do_fetch()
         end
         return nil  -- don't insert a newline
@@ -275,7 +340,8 @@ function _draw()
   clip(0, BAR_H+1, W, H-BAR_H-1)
   for _, item in ipairs(items) do
     local y = BAR_H + 1 + item.y - scroll_y
-    if y > BAR_H - LINE_H and y < H + LINE_H then
+    local item_h = item.h or LINE_H
+    if y + item_h > BAR_H and y < H + LINE_H then
       if item.tag == "h1" then
         print(item.text, PAD_X, y, 7)
         line(PAD_X, y+LINE_H-1, PAD_X+#item.text*CHAR_W+2, y+LINE_H-1, 5)
@@ -285,6 +351,12 @@ function _draw()
         local col = link_hover(item) and 7 or 12
         print(item.text, PAD_X, y, col)
         line(PAD_X, y+LINE_H-1, PAD_X+text_width(item.text)-1, y+LINE_H-1, col)
+      elseif item.tag == "code" then
+        rectfill(PAD_X-2, y,   PAD_X+CONT_W+2, y+item.h-1, 0)
+        rect    (PAD_X-2, y,   PAD_X+CONT_W+2, y+item.h-1, 5)
+        for li, l in ipairs(item.lines) do
+          print(l, PAD_X+2, y+3+(li-1)*LINE_H, 11)
+        end
       else
         print(item.text, PAD_X, y, 6)
       end

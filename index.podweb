@@ -26,8 +26,24 @@ and linking to each other.
 [p-]
 Each user can place an index.podweb file in their podnet folder.
 This browser fetches that file and renders it. Links let you hop from
-one user's page to another. Over time, friendly domain names can replace
-the raw numeric user IDs - stored locally after your first visit.
+one user's page to another.
+[-p]
+
+[h2] Friendly domain names
+
+[p-]
+Pages can declare a friendly domain name in their meta block. When you
+visit a page for the first time, the browser remembers the mapping between
+that domain name and the owner's numeric user ID. This lookup is saved
+locally to your own podnet storage.
+[-p]
+
+[p-]
+From that point on you can type the domain name directly into the address
+bar instead of the raw podnet URL. For example, typing podweb.info will
+bring you straight back to this page without needing to remember any numbers.
+No central server is involved - the mapping lives entirely on your own account.
 [-p]
 
 [link file=about.podweb] Learn more about this project
+[link file=how-to.podweb] Want to contribute? Create your own page

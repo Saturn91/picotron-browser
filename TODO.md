@@ -48,27 +48,27 @@ Resizable window. Content area reflows on resize.
 ## TODO
 
 ### Core — Parser
-- [ ] Implement inline tag parser (`[tag] content`)
-- [ ] Implement block tag parser (`[tag-] ... [-tag]`)
-- [ ] Handle unknown/unsupported tags gracefully (skip or show raw)
+- [x] Implement inline tag parser (`[tag] content`)
+- [x] Implement block tag parser (`[tag-] ... [-tag]`)
+- [x] Handle unknown/unsupported tags gracefully (skip or show raw)
 - [ ] Define and document the full `.podweb` spec in README
 
 ### Core — Renderer
-- [ ] Render `[h1]` — large/bold style (color + maybe bigger via stretched print)
-- [ ] Render `[h2]` — medium style
-- [ ] Render `[p]` — body text with **word wrap** (split at word boundaries to fit window width)
-- [ ] Scrolling — track `scroll_y` offset, only draw visible nodes
+- [x] Render `[h1]` — large/bold style (color + maybe bigger via stretched print)
+- [x] Render `[h2]` — medium style
+- [x] Render `[p]` — body text with **word wrap** (split at word boundaries to fit window width)
+- [x] Scrolling — track `scroll_y` offset, only draw visible nodes
 - [ ] Reflow on window resize
 
 ### Core — Navigation
-- [ ] Address bar UI — display current `user_id` + filepath
-- [ ] Input: type a numeric user_id to navigate
+- [x] Address bar UI — display current `user_id` + filepath
+- [x] Input: type a numeric user_id to navigate
 - [ ] Back / Forward — history as a stack of `{user_id, filepath}` pairs
-- [ ] Internal links `[link file=about.podweb]` — same user, different file
-- [ ] Cross-user links `[link user=99]` — navigate to another user's index
+- [x] Internal links `[link file=about.podweb]` — same user, different file
+- [x] Cross-user links `[link user=99]` — navigate to another user's index
 
 ### Core — Networking
-- [ ] Fetch `index.podweb` from `podnet://<user_id>/index.podweb`
+- [x] Fetch `index.podweb` from `podnet://<user_id>/index.podweb`
 - [ ] Loading state — show spinner or "loading…" while fetch is in progress
 - [ ] Error state — handle missing files gracefully ("page not found")
 
@@ -79,17 +79,17 @@ Resizable window. Content area reflows on resize.
 - [ ] Show resolved user_id when navigating via domain name
 
 ### UI / UX
-- [ ] Design address bar (top of window: back/fwd buttons + address input)
+- [x] Design address bar (top of window: back/fwd buttons + address input)
 - [ ] Scrollbar indicator
 - [ ] Bookmarks — save/load a list of `{label, user_id, filepath}` to own podnet
 - [ ] Homepage — default page shown on launch (own podweb page, or a directory)
 
 ### local builder / previewer / publish
 - [ ] create a local previewer for local .podweb files
-- [ ] add a publish function which will publish your page on your url
+- [ ] add a publish function which will publish your page on your url (cmd started, not complete)
 
 ### Future / Stretch
-- [ ] `[link]` tag with clickable hit regions
+- [x] `[link]` tag with clickable hit regions
 - [ ] `[img]` tag — pod-encoded sprite embedded in .podweb file
 - [ ] `[code]` tag — monospace / syntax-highlighted block
 - [ ] `[hr]` tag — horizontal rule separator

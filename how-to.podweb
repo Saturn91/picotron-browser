@@ -1,0 +1,107 @@
+[meta-]
+domain: podweb.info
+[-meta]
+
+[h1] How to create your own Podweb page
+
+[h2] What you need
+
+[p-]
+All you need is a Lexaloffle account with Picotron access. Your podnet
+storage is already waiting for you - no sign-up required.
+[-p]
+
+[h2] Step 1 - write your page
+
+[p-]
+Create a plain text file called index.podweb. A page is made up of tagged
+blocks. Here are all the supported tags:
+[-p]
+
+[p] Headings:
+
+[code-]
+[h1] My Page Title
+[h2] A Section Heading
+[-code]
+
+[p] Paragraphs (single line or multi-line block):
+
+[code-]
+[p] A short paragraph on one line.
+
+[p-]
+A longer paragraph that can span
+multiple lines in the source file.
+[-p]
+[-code]
+
+[p] Links to other pages:
+
+[code-]
+[link file=about.podweb] Link to another file on your own page
+[link user=12345] Link to another user's index page
+[link user=12345 file=projects.podweb] Link to a specific file on their page
+[-code]
+
+[p] Code blocks (like this one):
+
+[code-]
+[code-]
+anything you write here is shown as-is
+in a dark box with fixed-width text
+[-code]
+[-code]
+
+[p-]
+You can also declare a friendly domain name for your page by adding a
+meta block at the very top of your file:
+[-p]
+
+[code-]
+[meta-]
+domain: yourname.podweb
+author: Your Name
+[-meta]
+[-code]
+
+[p-]
+Once someone visits your page, their browser will remember that domain
+name and let them navigate to it by name in the future.
+[-p]
+
+[h2] Step 2 - publish your page
+
+[p-]
+Open the Picotron terminal and run the publish command to upload your
+file to your podnet storage:
+[-p]
+
+[code-]
+publish index.podweb index.podweb
+[-code]
+
+[p-]
+The first argument is the local file path, the second is the filename
+it will have on your podnet. Once stored, your page is live and anyone
+with the Podweb browser can visit it using your numeric user ID:
+[-p]
+
+[code-]
+podnet://YOUR_USER_ID/index.podweb
+[-code]
+
+[p-]
+You can find your user ID by typing stat in the Picotron terminal
+and looking for your account number.
+[-p]
+
+[h2] Step 3 - link to other pages
+
+[p-]
+Add links in your page to connect to other users. If you know someone's
+user ID you can link directly to their index page. Once you visit their
+page your browser will learn their domain name too, if they have set one.
+[-p]
+
+[link file=index.podweb] Back to home
