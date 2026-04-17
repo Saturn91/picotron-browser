@@ -193,7 +193,7 @@ end
 -- After pdw_update, check document.navigated_to = {user, file} for link clicks.
 -- It is reset automatically at the start of the next pdw_update call.
 
-local LINE_H   = 8
+local LINE_H   = 9
 local CHAR_W   = 4
 local PAD_X    = 6
 local SCROLL_W = 4
