@@ -69,6 +69,110 @@ function resolve_url(input)
   return nil
 end
 
+:: main.lua
+--[[pod_format="raw",created="2026-04-17 09:53:00",modified="2026-04-17 09:55:11",revision=4]]
+-- Podweb Browser v0.3 - entry point, state, and lifecycle
+include("config.lua")
+include("domains.lua")
+include("renderer.lua")
+
+window({ width=W, height=H, title="Podweb Browser" })
+
+local markdown_renderer_src = fetch("podnet://48932/podweb-markdown.lua")
+if markdown_renderer_src then
+	load(markdown_renderer_src)()
+	print("successfully downloaded saturn91 latest parser")
+else
+	print("falling back to local parser")
+	include("podweb-markdown.lua")
+end
+
+gui         = create_gui()
+current_url = HOME_URL
+document    = nil
+url_bar     = nil
+prev_mb     = 0
+
+local CONT_Y = BAR_H + 1
+local CONT_H = H - BAR_H - 1
+
+function load_page()
+  document = nil
+  local src = fetch(current_url)
+  if src and src ~= "" then
+    document = pdw_parse(src, W, CONT_H)
+    local meta = document.meta
+    if meta.domain then
+      register_domain_if_new(meta.domain, string.match(current_url, "podnet://(%d+)/"))
+    end
+    local uid            = string.match(current_url, "podnet://(%d+)/")
+    local display_domain = meta.domain
+    if display_domain and known_domains[display_domain] ~= nil
+       and known_domains[display_domain] ~= uid then
+      display_domain = nil
+    end
+    if not display_domain then
+      for domain, id in pairs(known_domains) do
+        if id == uid then display_domain = domain; break end
+      end
+    end
+    local display = display_domain
+      and (display_domain .. "/" .. (string.match(current_url, "podnet://%d+/(.+)") or ""))
+      or  current_url
+    if url_bar and url_bar.set_text then url_bar:set_text(display) end
+  else
+    if url_bar and url_bar.set_text then url_bar:set_text(current_url) end
+  end
+end
+
+function _init()
+  load_known_domains()
+
+  url_bar = gui:attach_text_editor{
+    x      = RELOAD_BTN.x + RELOAD_BTN.w + 4,
+    y      = 2,
+    width  = W - RELOAD_BTN.x - RELOAD_BTN.w - 8,
+    height = BAR_H - 4,
+    key_callback = {
+      ["enter"] = function(self, k)
+        local input = self:get_text()[1]
+        if input and input ~= "" then
+          current_url = resolve_url(input) or input
+          load_page()
+        end
+        return nil
+      end
+    }
+  }
+  if url_bar.set_text then url_bar:set_text(current_url) end
+  load_page()
+end
+
+function _update()
+  if document then
+    pdw_update(document)
+    if document.navigated_to then
+      local nav      = document.navigated_to
+      local cur_user = string.match(current_url, "podnet://(%d+)/")
+      current_url    = "podnet://" .. (nav.user or cur_user) .. "/" .. (nav.file or "index.podweb")
+      load_page()
+    end
+  end
+
+  local _, _, mb = mouse()
+  if (prev_mb & 1) == 1 and (mb & 1) == 0 then
+    if is_over_button(RELOAD_BTN) then load_page() end
+  end
+  prev_mb = mb
+  gui:update_all()
+end
+
+function _draw()
+  cls(1)
+  draw_address_bar()
+  if document then pdw_doc(document, 0, CONT_Y) end
+  gui:draw_all()
+end
 :: podweb-markdown.lua
 --[[pod_format="raw",created="2026-04-17 08:20:59",modified="2026-04-17 08:20:59",revision=0]]
 -- podweb-markdown.lua
@@ -406,62 +510,17 @@ function draw_address_bar()
 end
 
 :: .info.pod
---[[pod,created="2026-04-16 00:00:00",modified="2026-04-17 08:30:34",runtime=25,workspaces={{location="main.lua#18",workspace_index=1},{location="config.lua",workspace_index=1},{location="parser.lua",workspace_index=1},{location="domains.lua",workspace_index=1}}]]
+--[[pod,created="2026-04-16 00:00:00",modified="2026-04-17 09:55:26",runtime=25,workspaces={{location="main.lua#6",workspace_index=1},{location="config.lua",workspace_index=1},{location="domains.lua",workspace_index=1},{location="renderer.lua",workspace_index=1}}]]
 :: gfx/.info.pod
---[[pod,created="2026-04-16 21:08:59",modified="2026-04-17 08:30:34"]]
+--[[pod,created="2026-04-16 21:08:59",modified="2026-04-17 09:55:26"]]
 :: gfx/ui.gfx
 b64$LS1bW3BvZCxjcmVhdGVkPSIyMDI2LTA0LTE2IDIxOjQxOjA5Iixtb2RpZmllZD0iMjAyNi0w
 NC0xNiAyMTo0MTowOSIscmV2aXNpb249MF1dbHo0AJ0AAAAxMQAA8yF7WzBdPXtibXA9cHh1AEMg
 EBAE8FYHEAfAF9AXwAcQB-BWLGZsYWdzPTAscGFuX3gIAMt5PTAsem9vbT04fSw_APUDJHpwenAK
 UApwCgAaIApwCkAaBABfenB68DRQAB0f8DEA----------------------------------------
 ------------------------plBtPTh9fQ==
-:: main.lua
-b64$LS1bW3BvZF9mb3JtYXQ9InJhdyIsY3JlYXRlZD0iMjAyNi0wNC0xNyAwODoxOTo0MCIsbW9k
-aWZpZWQ9IjIwMjYtMDQtMTcgMDg6MzA6MzQiLHJldmlzaW9uPTEyXV0KLS0gUG9kd2ViIEJyb3dz
-ZXIgdjAuMyDigJQgZW50cnkgcG9pbnQsIHN0YXRlLCBhbmQgbGlmZWN5Y2xlCmluY2x1ZGUoImNv
-bmZpZy5sdWEiKQppbmNsdWRlKCJkb21haW5zLmx1YSIpCmluY2x1ZGUoInJlbmRlcmVyLmx1YSIp
-CmxvY2FsIG1hcmtkb3duX3JlbmRlcmVyX3NyYyA9IGZldGNoKCJwb2RuZXQ6Ly80ODkzMi9wb2R3
-ZWItbWFya2Rvd24ubHVhIikKaWYgbWFya2Rvd25fcmVuZGVyZXJfc3JjIHRoZW4KCWxvYWQobWFy
-a2Rvd25fcmVuZGVyZXJfc3JjKSgpCglwcmludCgic3VjY2Vzc2Z1bGx5IGRvd25sb2FkZWQgc2F0
-dXJuOTEgbGF0ZXN0IHBhcnNlciIpCmVsc2UKCXByaW50KCJmYWxsaW5nIGJhY2sgdG8gbG9jYWwg
-cGFyc2VyIikKCWluY2x1ZGUoInBvZHdlYi1tYXJrZG93bi5sdWEiKQplbmQKCmd1aSAgICAgICAg
-ID0gY3JlYXRlX2d1aSgpCmN1cnJlbnRfdXJsID0gSE9NRV9VUkwKZG9jdW1lbnQgICAgPSBuaWwK
-dXJsX2JhciAgICAgPSBuaWwKcHJldl9tYiAgICAgPSAwCgpsb2NhbCBDT05UX1kgPSBCQVJfSCAr
-IDEKbG9jYWwgQ09OVF9IID0gSCAtIEJBUl9IIC0gMQoKZnVuY3Rpb24gbG9hZF9wYWdlKCkKICBk
-b2N1bWVudCA9IG5pbAogIGxvY2FsIHNyYyA9IGZldGNoKGN1cnJlbnRfdXJsKQogIGlmIHNyYyBh
-bmQgc3JjIH49ICIiIHRoZW4KICAgIGRvY3VtZW50ID0gcGR3X3BhcnNlKHNyYywgVywgQ09OVF9I
-KQogICAgbG9jYWwgbWV0YSA9IGRvY3VtZW50Lm1ldGEKICAgIGlmIG1ldGEuZG9tYWluIHRoZW4K
-ICAgICAgcmVnaXN0ZXJfZG9tYWluX2lmX25ldyhtZXRhLmRvbWFpbiwgc3RyaW5nLm1hdGNoKGN1
-cnJlbnRfdXJsLCAicG9kbmV0Oi8vKCVkKykvIikpCiAgICBlbmQKICAgIGxvY2FsIGRpc3BsYXkg
-PSBtZXRhLmRvbWFpbgogICAgICBhbmQgKG1ldGEuZG9tYWluIC4uICIvIiAuLiAoc3RyaW5nLm1h
-dGNoKGN1cnJlbnRfdXJsLCAicG9kbmV0Oi8vJWQrLyguKykiKSBvciAiIikpCiAgICAgIG9yICBj
-dXJyZW50X3VybAogICAgaWYgdXJsX2JhciBhbmQgdXJsX2Jhci5zZXRfdGV4dCB0aGVuIHVybF9i
-YXI6c2V0X3RleHQoZGlzcGxheSkgZW5kCiAgZWxzZQogICAgaWYgdXJsX2JhciBhbmQgdXJsX2Jh
-ci5zZXRfdGV4dCB0aGVuIHVybF9iYXI6c2V0X3RleHQoY3VycmVudF91cmwpIGVuZAogIGVuZApl
-bmQKCmZ1bmN0aW9uIF9pbml0KCkKICB3aW5kb3coeyB3aWR0aD1XLCBoZWlnaHQ9SCwgdGl0bGU9
-IlBvZHdlYiBCcm93c2VyIiB9KQogIGxvYWRfa25vd25fZG9tYWlucygpCgogIHVybF9iYXIgPSBn
-dWk6YXR0YWNoX3RleHRfZWRpdG9yewogICAgeCAgICAgID0gUkVMT0FEX0JUTi54ICsgUkVMT0FE
-X0JUTi53ICsgNCwKICAgIHkgICAgICA9IDIsCiAgICB3aWR0aCAgPSBXIC0gUkVMT0FEX0JUTi54
-IC0gUkVMT0FEX0JUTi53IC0gOCwKICAgIGhlaWdodCA9IEJBUl9IIC0gNCwKICAgIGtleV9jYWxs
-YmFjayA9IHsKICAgICAgWyJlbnRlciJdID0gZnVuY3Rpb24oc2VsZiwgaykKICAgICAgICBsb2Nh
-bCBpbnB1dCA9IHNlbGY6Z2V0X3RleHQoKVsxXQogICAgICAgIGlmIGlucHV0IGFuZCBpbnB1dCB_
-PSAiIiB0aGVuCiAgICAgICAgICBjdXJyZW50X3VybCA9IHJlc29sdmVfdXJsKGlucHV0KSBvciBp
-bnB1dAogICAgICAgICAgbG9hZF9wYWdlKCkKICAgICAgICBlbmQKICAgICAgICByZXR1cm4gbmls
-CiAgICAgIGVuZAogICAgfQogIH0KICBpZiB1cmxfYmFyLnNldF90ZXh0IHRoZW4gdXJsX2Jhcjpz
-ZXRfdGV4dChjdXJyZW50X3VybCkgZW5kCiAgbG9hZF9wYWdlKCkKZW5kCgpmdW5jdGlvbiBfdXBk
-YXRlKCkKICBpZiBkb2N1bWVudCB0aGVuCiAgICBwZHdfdXBkYXRlKGRvY3VtZW50KQogICAgaWYg
-ZG9jdW1lbnQubmF2aWdhdGVkX3RvIHRoZW4KICAgICAgbG9jYWwgbmF2ICAgICAgPSBkb2N1bWVu
-dC5uYXZpZ2F0ZWRfdG8KICAgICAgbG9jYWwgY3VyX3VzZXIgPSBzdHJpbmcubWF0Y2goY3VycmVu
-dF91cmwsICJwb2RuZXQ6Ly8oJWQrKS8iKQogICAgICBjdXJyZW50X3VybCAgICA9ICJwb2RuZXQ6
-Ly8iIC4uIChuYXYudXNlciBvciBjdXJfdXNlcikgLi4gIi8iIC4uIChuYXYuZmlsZSBvciAiaW5k
-ZXgucG9kd2ViIikKICAgICAgbG9hZF9wYWdlKCkKICAgIGVuZAogIGVuZAoKICBsb2NhbCBfLCBf
-LCBtYiA9IG1vdXNlKCkKICBpZiAocHJldl9tYiAmIDEpID09IDEgYW5kIChtYiAmIDEpID09IDAg
-dGhlbgogICAgaWYgaXNfb3Zlcl9idXR0b24oUkVMT0FEX0JUTikgdGhlbiBsb2FkX3BhZ2UoKSBl
-bmQKICBlbmQKICBwcmV2X21iID0gbWIKICBndWk6dXBkYXRlX2FsbCgpCmVuZAoKZnVuY3Rpb24g
-X2RyYXcoKQogIGNscygxKQogIGRyYXdfYWRkcmVzc19iYXIoKQogIGlmIGRvY3VtZW50IHRoZW4g
-cGR3X2RvYyhkb2N1bWVudCwgMCwgQ09OVF9ZKSBlbmQKICBndWk6ZHJhd19hbGwoKQplbmQ=
 :: map/.info.pod
---[[pod,created="2026-04-16 21:08:59",modified="2026-04-17 08:30:34"]]
+--[[pod,created="2026-04-16 21:08:59",modified="2026-04-17 09:55:26"]]
 :: sfx/.info.pod
---[[pod,created="2026-04-16 21:08:59",modified="2026-04-17 08:30:34"]]
+--[[pod,created="2026-04-16 21:08:59",modified="2026-04-17 09:55:26"]]
 :: [eoc]
