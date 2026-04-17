@@ -89,6 +89,8 @@ podnet://<user_id>/<filename>
 
 Also accessible from any web browser at the equivalent Lexaloffle URL.
 
+e.g. https://podnet.flp.io/48932/domains.lookup
+
 ### Read a file
 
 ```lua

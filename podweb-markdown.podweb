@@ -1,0 +1,98 @@
+[meta-]
+domain: podweb.info
+author: Saturn91.dev
+[-meta]
+
+[h1] The podweb-markdown library
+
+[p-]
+podweb-markdown.lua is a small Lua library for Picotron that parses and
+renders .podweb pages. You can use it to build your own podweb browser
+or embed a browsable document view inside any cartridge.
+[-p]
+
+[h2] Getting the library
+
+[p-]
+The latest version is always published to podnet. Fetch it at runtime
+so your cart always uses the most recent parser:
+[-p]
+
+[code-]
+local src = fetch("podnet://48932/podweb-markdown.lua")
+if src then load(src)() else include("podweb-markdown.lua") end
+[-code]
+
+[p-]
+The fallback include("podweb-markdown.lua") is useful while developing
+locally. Ship with the fetch path so users always get updates.
+[-p]
+
+[h2] API
+
+[code-]
+pdw_parse(src, width, height)  -> document
+pdw_update(document)           -> handles input this frame
+pdw_doc(document, x, y)        -> renders document at x,y
+[-code]
+
+[p-]
+After calling pdw_update, check document.navigated_to. If a link was
+clicked it will be set to a table with user and file fields. Reset it
+by navigating to the new page (pdw_parse replaces the document).
+[-p]
+
+[h2] Minimal demo (main.lua)
+
+[p] This is the full source of the demo cartridge #podweb_markdown_demo:
+
+[code-]
+window({ width=250, height=160, title="podweb test" })
+
+local src = fetch("podnet://48932/podweb-markdown.lua")
+if src then
+  load(src)()
+  print("downloaded latest parser")
+else
+  include("podweb-markdown.lua")
+  print("fallback to local parser...")
+end
+
+local current_url = "podnet://48932/index.podweb"
+local document
+
+local function load_page(url)
+  local src = fetch(url)
+  if src and src ~= "" then
+    current_url = url
+    document = pdw_parse(src, 200, 100)
+  end
+end
+
+load_page(current_url)
+
+function _update()
+  if not document then return end
+  pdw_update(document)
+  if document.navigated_to then
+    local nav      = document.navigated_to
+    local cur_user = string.match(current_url, "podnet://(%d+)/")
+    load_page("podnet://" .. (nav.user or cur_user) .. "/" .. nav.file)
+  end
+end
+
+function _draw()
+  cls()
+  if document then
+    pdw_doc(document, 10, 20)
+  end
+end
+[-code]
+
+[h2] Writing pages
+
+[p] For the .podweb markup format see:
+
+[link file=how-to.podweb] how to create your own page
+
+[link file=index.podweb] back to home

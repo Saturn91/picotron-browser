@@ -34,11 +34,19 @@ RELOAD_BTN   = { x=4, y=2, w=36, h=12, label="Reload" }
 
 known_domains = {}
 
+local function clean_str(s)
+  return (string.gsub(string.gsub(s, "\r", ""), "\n", ""))
+end
+
 function load_known_domains()
   if DOMAINS_FILE == "" then return end
   local src = fetch(DOMAINS_FILE)
   if src and src ~= "" then
-    known_domains = unpod(src) or {}
+    local raw = unpod(src) or {}
+    known_domains = {}
+    for domain, uid in pairs(raw) do
+      known_domains[clean_str(domain)] = uid
+    end
   end
 end
 
@@ -225,7 +233,7 @@ local function parse_podweb(src)
       i += 1
       while i <= #lines and not string.match(lines[i], "^%[%-meta%]") do
         local key, val = string.match(lines[i], "^(%w+):%s*(.+)")
-        if key then meta[key] = val end
+        if key then meta[key] = string.gsub(val, "\r", "") end
         i += 1
       end
       i += 1
@@ -510,9 +518,9 @@ function draw_address_bar()
 end
 
 :: .info.pod
---[[pod,created="2026-04-16 00:00:00",modified="2026-04-17 09:55:26",runtime=25,workspaces={{location="main.lua#6",workspace_index=1},{location="config.lua",workspace_index=1},{location="domains.lua",workspace_index=1},{location="renderer.lua",workspace_index=1}}]]
+--[[pod,created="2026-04-16 00:00:00",modified="2026-04-17 10:21:48",runtime=25,workspaces={{location="main.lua#6",workspace_index=1},{location="config.lua",workspace_index=1},{location="domains.lua",workspace_index=1},{location="renderer.lua",workspace_index=1}}]]
 :: gfx/.info.pod
---[[pod,created="2026-04-16 21:08:59",modified="2026-04-17 09:55:26"]]
+--[[pod,created="2026-04-16 21:08:59",modified="2026-04-17 10:21:48"]]
 :: gfx/ui.gfx
 b64$LS1bW3BvZCxjcmVhdGVkPSIyMDI2LTA0LTE2IDIxOjQxOjA5Iixtb2RpZmllZD0iMjAyNi0w
 NC0xNiAyMTo0MTowOSIscmV2aXNpb249MF1dbHo0AJ0AAAAxMQAA8yF7WzBdPXtibXA9cHh1AEMg
@@ -520,7 +528,7 @@ EBAE8FYHEAfAF9AXwAcQB-BWLGZsYWdzPTAscGFuX3gIAMt5PTAsem9vbT04fSw_APUDJHpwenAK
 UApwCgAaIApwCkAaBABfenB68DRQAB0f8DEA----------------------------------------
 ------------------------plBtPTh9fQ==
 :: map/.info.pod
---[[pod,created="2026-04-16 21:08:59",modified="2026-04-17 09:55:26"]]
+--[[pod,created="2026-04-16 21:08:59",modified="2026-04-17 10:21:48"]]
 :: sfx/.info.pod
---[[pod,created="2026-04-16 21:08:59",modified="2026-04-17 09:55:26"]]
+--[[pod,created="2026-04-16 21:08:59",modified="2026-04-17 10:21:48"]]
 :: [eoc]
