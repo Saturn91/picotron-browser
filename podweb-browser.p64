@@ -28,7 +28,9 @@ end
 DOMAINS_FILE = get_users_domain_file()
 HOME_URL     = "podnet://48932/index.podweb"
 
-RELOAD_BTN   = { x=4,     y=2, w=12, h=12, sprite=2 }
+RELOAD_BTN   = { x=4,    y=2, w=12, h=12, sprite=2 }
+BACK_BTN     = { x=20,   y=2, w=12, h=12, sprite=3 }
+FORWARD_BTN  = { x=36,   y=2, w=12, h=12, sprite=4 }
 SUBMIT_BTN   = { x=W-16, y=2, w=12, h=12, sprite=1 }
 
 :: domains.lua
@@ -103,6 +105,41 @@ current_url = HOME_URL
 document    = nil
 url_bar     = nil
 prev_mb     = 0
+history     = {}
+hist_idx    = 0
+
+function push_history(url)
+  while #history > hist_idx do
+    table.remove(history)
+  end
+  add(history, url)
+  while #history > 10 do
+    table.remove(history, 1)
+  end
+  hist_idx = #history
+end
+
+function navigate_to(url)
+  push_history(url)
+  current_url = url
+  load_page()
+end
+
+function go_back()
+  if hist_idx > 1 then
+    hist_idx   -= 1
+    current_url = history[hist_idx]
+    load_page()
+  end
+end
+
+function go_forward()
+  if hist_idx < #history then
+    hist_idx   += 1
+    current_url = history[hist_idx]
+    load_page()
+  end
+end
 
 local CONT_Y = BAR_H + 1
 local CONT_H = H - BAR_H - 1
@@ -140,22 +177,22 @@ function _init()
   load_known_domains()
 
   url_bar = gui:attach_text_editor{
-    x      = RELOAD_BTN.x + RELOAD_BTN.w + 4,
+    x      = FORWARD_BTN.x + FORWARD_BTN.w + 4,
     y      = 2,
-    width  = SUBMIT_BTN.x - (RELOAD_BTN.x + RELOAD_BTN.w + 4) - 4,
+    width  = SUBMIT_BTN.x - (FORWARD_BTN.x + FORWARD_BTN.w + 4) - 4,
     height = BAR_H - 4,
     key_callback = {
       ["enter"] = function(self, k)
         local input = self:get_text()[1]
         if input and input ~= "" then
-          current_url = resolve_url(input) or input
-          load_page()
+          navigate_to(resolve_url(input) or input)
         end
         return nil
       end
     }
   }
   if url_bar.set_text then url_bar:set_text(current_url) end
+  push_history(current_url)
   load_page()
 end
 
@@ -163,21 +200,21 @@ function _update()
   if document then
     pdw_update(document)
     if document.navigated_to then
-      local nav      = document.navigated_to
+      local nav     = document.navigated_to
       local cur_user = string.match(current_url, "podnet://(%d+)/")
-      current_url    = "podnet://" .. (nav.user or cur_user) .. "/" .. (nav.file or "index.podweb")
-      load_page()
+      navigate_to("podnet://" .. (nav.user or cur_user) .. "/" .. (nav.file or "index.podweb"))
     end
   end
 
   local _, _, mb = mouse()
   if (prev_mb & 1) == 1 and (mb & 1) == 0 then
     if is_over_button(RELOAD_BTN) then load_page() end
+    if is_over_button(BACK_BTN)    then go_back() end
+    if is_over_button(FORWARD_BTN) then go_forward() end
     if is_over_button(SUBMIT_BTN) then
       local input = url_bar:get_text()[1]
       if input and input ~= "" then
-        current_url = resolve_url(input) or input
-        load_page()
+        navigate_to(resolve_url(input) or input)
       end
     end
   end
@@ -513,8 +550,9 @@ function is_over_button(b)
 end
 
 function draw_button(b)
-  local hovered = is_over_button(b)
-  rectfill(b.x, b.y, b.x+b.w-1, b.y+b.h-1, hovered and 6 or 2)
+  local hovered = not b.disabled and is_over_button(b)
+  local bg      = b.disabled and 1 or (hovered and 6 or 2)
+  rectfill(b.x, b.y, b.x+b.w-1, b.y+b.h-1, bg)
   if b.sprite then
     spr(b.sprite, b.x, b.y)
   else
@@ -528,20 +566,24 @@ end
 function draw_address_bar()
   rectfill(0, 0, W-1, BAR_H-1, 0)
   draw_button(RELOAD_BTN)
+  BACK_BTN.disabled    = hist_idx <= 1
+  FORWARD_BTN.disabled = hist_idx >= #history
+  draw_button(BACK_BTN)
+  draw_button(FORWARD_BTN)
   draw_button(SUBMIT_BTN)
   line(0, BAR_H, W-1, BAR_H, 5)
 end
 
 :: .info.pod
---[[pod,created="2026-04-16 00:00:00",modified="2026-04-17 20:34:39",runtime=25,workspaces={{location="main.lua#102",workspace_index=1},{location="config.lua#3",workspace_index=1},{location="domains.lua",workspace_index=1},{location="renderer.lua",workspace_index=1},{location="gfx/ui.gfx#4",workspace_index=2},{location="gfx/0.gfx#4",workspace_index=2}}]]
+--[[pod,created="2026-04-16 00:00:00",modified="2026-04-17 20:51:36",runtime=25,workspaces={{location="main.lua#102",workspace_index=1},{location="config.lua#3",workspace_index=1},{location="domains.lua",workspace_index=1},{location="renderer.lua",workspace_index=1},{location="gfx/ui.gfx#4",workspace_index=2},{location="gfx/0.gfx#3",workspace_index=2}}]]
 :: gfx/.info.pod
---[[pod,created="2026-04-16 21:08:59",modified="2026-04-17 20:34:39"]]
+--[[pod,created="2026-04-16 21:08:59",modified="2026-04-17 20:51:36"]]
 :: gfx/0.gfx
 b64$LS1bW3BvZCxjcmVhdGVkPSIyMDI2LTA0LTE3IDIwOjMzOjUyIixtb2RpZmllZD0iMjAyNi0w
-NC0xNyAyMDozNDoxMCIscmV2aXNpb249M11dbHo0AN8AAABeMQAA8yF7WzBdPXtibXA9cHh1AEMg
+NC0xNyAyMDo1MTozNiIscmV2aXNpb249NV1dbHo0AN8AAABeMQAA8yF7WzBdPXtibXA9cHh1AEMg
 EBAE8FYHEAfAF9AXwAcQB-BWLGZsYWdzPTAscGFuX3gIAMt5PTAsem9vbT04fSw_AP8BIirAKiAK
 gHpwimB60ArwZ0AAHcAEOpAaMBpwClAKYAoGAP8JUAoACgAKMApgKkAKcApgCuAaMAqgOvBIWAAd
-zzUK0FqAapBaoArwajwAHc85CpBqgHpwatAK8GY8AB0f8DEA----------------------------
+zzQK0FqAapBaoArwazwAHc83CpBqgHpwatAK8Gg8AB0f8DEA----------------------------
 ------------------------------------E1BtPTh9fQ==
 :: gfx/ui.gfx
 b64$LS1bW3BvZCxjcmVhdGVkPSIyMDI2LTA0LTE2IDIxOjQxOjA5Iixtb2RpZmllZD0iMjAyNi0w
@@ -1144,7 +1186,7 @@ FMI0FMA0FMA0wRTANMAUwTQUNBTANBTANBT9-f39-f3JNP3iFP39-f39-f39-f39-f39-f39-f39
 -f39-f39-f39-f39-f39-f39-f39-f39-f39-f39-f39-f39-f39-f39-f39-f39-f39-f39-f39
 -f39-f39-f39-f39-f39-f39-f39-f39-f39-f39-f39-f39-f39-f39-f39ygAAAAAAAAAB
 :: map/.info.pod
---[[pod,created="2026-04-16 21:08:59",modified="2026-04-17 20:34:39"]]
+--[[pod,created="2026-04-16 21:08:59",modified="2026-04-17 20:51:36"]]
 :: sfx/.info.pod
---[[pod,created="2026-04-16 21:08:59",modified="2026-04-17 20:34:39"]]
+--[[pod,created="2026-04-16 21:08:59",modified="2026-04-17 20:51:36"]]
 :: [eoc]
