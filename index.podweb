@@ -36,6 +36,8 @@ one user's page to another.
 [link file=roadmap.podweb] roadmap
 
 [h2] update history
+[p] version 1.2.2 allow external https links
+
 [p] version 1.2.1 no more domains.lookup file stored in podnet
 
 [p] version 1.2.0 with back and forward buttons!
