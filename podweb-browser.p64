@@ -520,15 +520,16 @@ function draw_address_bar()
 end
 
 :: .info.pod
---[[pod,created="2026-04-16 00:00:00",modified="2026-04-17 10:49:06",runtime=25,workspaces={{location="main.lua#6",workspace_index=1},{location="config.lua#3",workspace_index=1},{location="domains.lua",workspace_index=1},{location="renderer.lua",workspace_index=1}}]]
+--[[pod,created="2026-04-16 00:00:00",modified="2026-04-17 11:03:43",runtime=25,workspaces={{location="main.lua#6",workspace_index=1},{location="config.lua#3",workspace_index=1},{location="domains.lua",workspace_index=1},{location="renderer.lua",workspace_index=1},{location="gfx/ui.gfx#4",workspace_index=2}}]]
 :: gfx/.info.pod
---[[pod,created="2026-04-16 21:08:59",modified="2026-04-17 10:49:06"]]
+--[[pod,created="2026-04-16 21:08:59",modified="2026-04-17 11:03:43"]]
 :: gfx/ui.gfx
 b64$LS1bW3BvZCxjcmVhdGVkPSIyMDI2LTA0LTE2IDIxOjQxOjA5Iixtb2RpZmllZD0iMjAyNi0w
-NC0xNiAyMTo0MTowOSIscmV2aXNpb249MF1dbHo0AJ0AAAAxMQAA8yF7WzBdPXtibXA9cHh1AEMg
-EBAE8FYHEAfAF9AXwAcQB-BWLGZsYWdzPTAscGFuX3gIAMt5PTAsem9vbT04fSw_APUDJHpwenAK
-UApwCgAaIApwCkAaBABfenB68DRQAB0f8DEA----------------------------------------
-------------------------plBtPTh9fQ==
+NC0xNyAxMTowMzo0MyIscmV2aXNpb249NV1dbHo0AN8AAABeMQAA8yF7WzBdPXtibXA9cHh1AEMg
+EBAE8FYHEAfAF9AXwAcQB-BWLGZsYWdzPTAscGFuX3gIAMt5PTAsem9vbT04fSw_AP8BIirAKiAK
+gHpwimB60ArwZ0AAHcAEOpAaMBpwClAKYAoGAP8JUAoACgAKMApgKkAKcApgCuAaMAqgOvBIWAAd
+zzUK0FqAapBaoArwajwAHc85CpBqgHpwatAK8GY8AB0f8DEA----------------------------
+------------------------------------E1BtPTh9fQ==
 :: label.qoi
 b64$cW9pZgAAAeAAAAEOBAH-_PDo-P39-f39-f39-f39-f39-eH_IGCwxAT9-f39-f3AJMAEwCTA
 BMckwQTAJMEEyyTBBMgkxATG-iio_MYEySQEJATNJMUE-f39-f38JMAEwiTABMYkwQTAJMEExiTC
@@ -1123,7 +1124,7 @@ FMI0FMA0FMA0wRTANMAUwTQUNBTANBTANBT9-f39-f3JNP3iFP39-f39-f39-f39-f39-f39-f39
 -f39-f39-f39-f39-f39-f39-f39-f39-f39-f39-f39-f39-f39-f39-f39-f39-f39-f39-f39
 -f39-f39-f39-f39-f39-f39-f39-f39-f39-f39-f39-f39-f39-f39-f39ygAAAAAAAAAB
 :: map/.info.pod
---[[pod,created="2026-04-16 21:08:59",modified="2026-04-17 10:49:06"]]
+--[[pod,created="2026-04-16 21:08:59",modified="2026-04-17 11:03:43"]]
 :: sfx/.info.pod
---[[pod,created="2026-04-16 21:08:59",modified="2026-04-17 10:49:06"]]
+--[[pod,created="2026-04-16 21:08:59",modified="2026-04-17 11:03:43"]]
 :: [eoc]
