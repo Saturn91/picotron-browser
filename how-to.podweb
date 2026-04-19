@@ -26,8 +26,9 @@ tagged blocks. Everything is plain text... for now... - no HTML, no styling, no 
 [p] Headings:
 
 [code-]
-[h1] My Page Title
-[h2] A Section Heading
+[h1] My Page Title      <- white, custom font, underlined
+[h2] A Section Heading  <- blue, default font, underlined
+[h3] A Sub Heading      <- blue, default font
 [-code]
 
 [p] Short paragraphs on a single line:
@@ -93,6 +94,44 @@ part after the # when you load it e.g. load #podnet_browser).
 Clicking the link runs the cart alongside the browser without closing it.
 Try it out with [link- cart=sakura]taxicomics wallpaper[-link]
 [-p]
+
+[h3] Custom fonts
+
+[p-]
+You can load custom fonts from podnet and use them on headings,
+paragraphs, and links. Declare all fonts at the top of your file
+(right after the meta block) so they are ready before any tag uses them.
+[-p]
+
+[code-]
+[meta-]
+domain: yourname.podweb
+[-meta]
+
+[font id=fancy url=podnet://78402/fonts/widesquat.font height=10]
+[font id=wide  url=podnet://78402/fonts/lilwide.font   height=8]
+
+[h1 font=fancy] Title in fancy font
+[h2 font=wide]  Section in wide font
+[h3 font=fancy] Sub-section in fancy font
+[p  font=wide]  A short paragraph in wide font.
+[p- font=fancy]
+A multi-line paragraph
+in the fancy font.
+[-p]
+[link file=other.podweb font=wide] a link in wide font
+[-code]
+
+[p-]
+The height= value is the pixel height of the font. Line spacing is
+height + 2 pixels. If the font URL cannot be fetched the browser
+silently falls back to the default font, so broken URLs never crash
+your page.
+[-p]
+
+[p] Looking for fonts to use? Check out this collection:
+
+[link user=78402 file=podweb/fonts.podweb] great fonts by thelxinoe5
 
 [p] Code blocks for showing text as-is:
 

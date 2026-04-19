@@ -1,4 +1,6 @@
-[h1] test
+[font id=yummies url=podnet://78402/fonts/minie.font height=5]
+
+[h1] Test
 
 [p] Visit the [link- user=135230 file=podnet_browser.podweb]skutter.de[-link] for more details.
 
@@ -6,7 +8,7 @@
 You can also check out [link- url="https://saturn91.dev/index.podweb"]saturn91.dev[-link] or go back to [link- file=index.podweb]home[-link] anytime.
 [-p]
 
-[p-]
+[p- font=yummies]
 You can also check out [link- url="https://saturn91.dev/index.podweb"]saturn91.dev[-link] or go back to [link- file=index.podweb]home[-link] anytime.
 and [link- url="https://saturn91.dev/index.podweb"]saturn91.dev[-link] yes yes
 [-p]
@@ -17,3 +19,13 @@ and [link- url="https://saturn91.dev/index.podweb"]saturn91.dev[-link] yes yes
 
 [link cart=#sakura] hastag card link
 [link cart=sakura] no hastag card link
+
+
+[h1] H1 font title
+[h2] H2 font title
+[h3] h3 title
+[p] a parahraph
+
+[p] --------------------------
+[h2 font=yummies] custom font test
+[p font=yum] this line is a fallback

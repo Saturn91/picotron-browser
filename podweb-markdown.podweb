@@ -90,6 +90,50 @@ function _draw()
 end
 [-code]
 
+[h2] Headings
+
+[p] There are three heading levels with distinct styles:
+
+[code-]
+[h1] Title         <- custom font, white, underlined
+[h2] Section       <- default font, blue, underlined
+[h3] Sub section   <- default font, blue
+[-code]
+
+[p-]
+h1 uses a bundled custom font fetched at startup. If unavailable it
+falls back to the default font. You can override the font on any
+heading with font=id.
+[-p]
+
+[h2] Custom fonts
+
+[p-]
+Declare a font once at the top of your page, then reference its id on
+any tag. If the fetch fails the browser silently falls back to the
+default font.
+[-p]
+
+[code-]
+[font id=fancy url=podnet://78402/fonts/widesquat.font height=10]
+[font id=wide  url=podnet://78402/fonts/lilwide.font   height=8]
+
+[h1 font=fancy] h1 in fancy font
+[h2 font=wide]  h2 in wide font
+[h3 font=fancy] h3 in fancy font
+[p font=wide]   inline paragraph in wide font
+[p- font=fancy]
+multiline paragraph in fancy font
+[-p]
+[link file=other.podweb font=wide] link label in wide font
+[-code]
+
+[p] The height value is the font pixel height. Line height is height + 2px.
+
+[p] Looking for fonts to use? Check out this collection:
+
+[link user=78402 file=podweb/fonts.podweb] great fonts by thelxinoe5
+
 [h2] Writing pages
 
 [p] For the .podweb markup format see:
