@@ -323,6 +323,7 @@ end
 
 function pdw_update(doc)
   doc.navigated_to = nil
+  doc.copied        = false
   local _, _, mb, _, mwy = mouse()
 
   if mwy and mwy ~= 0 then
@@ -335,6 +336,7 @@ function pdw_update(doc)
     for _, item in ipairs(doc.items) do
       if item.tag == "code" and copy_hovered(doc, item) then
         set_clipboard(item.copy_str)
+        doc.copied = true
         break
       end
     end
