@@ -1,56 +1,4 @@
-picotron cartridge // www.picotron.net
-version 2
-
-:: gfx/
-:: map/
-:: sfx/
-:: main.lua
---[[pod_format="raw",created="2026-04-17 08:32:43",modified="2026-04-19 14:21:35",revision=34]]
-window({ width=250, height=160, title="podweb test" })
-
-local markdown_renderer_src = fetch("podnet://48932/podweb-markdown.lua")
-
--- elaborate fetching to get the latest version of the parser if possible
--- replace with "include podweb-markdown.lua" if it is no longer available
-if markdown_renderer_src then
-	load(markdown_renderer_src)()
-	print("successfully downloaded saturn91 latest parser")
-else
-	include("podweb-markdown.lua")
-	print("fallback to local parser...")
-end
-
-local current_url = "podnet://48932/index.podweb"
-local document
-
-local function load_page(url)
-  local src = fetch(url)
-  if src and src ~= "" then
-    current_url = url
-    document = pdw_parse(src, 200, 100)
-  end
-end
-
-load_page(current_url)
-
-function _update()
-  if not document then return end
-  pdw_update(document)
-  if document.navigated_to then
-    local nav      = document.navigated_to
-    local cur_user = string.match(current_url, "podnet://(%d+)/")
-    load_page("podnet://" .. (nav.user or cur_user) .. "/" .. nav.file)
-  end
-end
-
-function _draw()
-  cls()
-  if document then
-    pdw_doc(document, 10, 20)
-  end
-end
-:: podweb-markdown.lua
---[[pod_format="raw",created="2026-04-17 08:56:19",modified="2026-04-19 11:00:00",revision=1]]
+--[[pod_format="raw",created="2026-04-17 08:26:09",modified="2026-04-20 21:08:15",revision=28,xstickers={}]]
 -- podweb-markdown.lua
 -- API: pdw_parse(src, width, height) -> document, max_scroll
 --      pdw_update(document)          -> handles scrolling, links, copy
@@ -382,8 +330,8 @@ local function layout_nodes(nodes, cont_w)
       for code_line in string.gmatch(node.text .. "\n", "([^\n]*)\n") do
         add(code_lines, code_line)
       end
-      local block_h = #code_lines * mono_lh + 6
-      local copy_w  = measure("copy")
+      local block_h  = #code_lines * mono_lh + 6
+      local copy_w   = measure("copy")
       _apply_font(nil)
       y += 2
       add(items, { tag="code", lines=code_lines, y=y, h=block_h, copy_str=node.text, line_h=mono_lh, copy_w=copy_w })
@@ -459,7 +407,7 @@ local function layout_nodes(nodes, cont_w)
   for _, item in ipairs(items) do
     bottom = max(bottom, item.y + (item.h or item.line_h or LINE_H))
   end
-  return items, bottom + 14
+  return items, bottom + 2
 end
 
 -- hover helpers (use doc.ox/oy set by pdw_doc the previous frame)
@@ -714,29 +662,3 @@ function pdw_doc(doc, ox, oy)
 
   clip()
 end
-
-:: .info.pod
---[[pod,created="2026-03-27 05:34:19",modified="2026-04-19 14:21:35",runtime=25,workspaces={{location="main.lua#3",workspace_index=1},{location="podweb-markdown.lua#309",workspace_index=1}}]]
-:: gfx/.info.pod
---[[pod,created="2026-03-27 05:34:19",modified="2026-04-19 14:21:35"]]
-:: gfx/0.gfx
-b64$LS1bW3BvZCxjcmVhdGVkPSIyMDI1LTAxLTE3IDEwOjM1OjQ4Iixtb2RpZmllZD0iMjAyNS0w
-MS0xNyAxMDozNzo0NCIscmV2aXNpb249Ml1dbHo0AH4AAAASMQAA8yF7WzBdPXtibXA9cHh1AEMg
-EBAE8FYHEAfAF9AXwAcQB-BWLGZsYWdzPTAscGFuX3gIAMt5PTAsem9vbT04fSw_AB-wMQD-----
------------------------------------------------------------XUG09OH19
-:: map/.info.pod
---[[pod,created="2026-03-27 05:34:19",modified="2026-04-19 14:21:35"]]
-:: map/0.map
-b64$LS1bW3BvZCxjcmVhdGVkPSIyMDI1LTAxLTE3IDEwOjM1OjQ4Iixtb2RpZmllZD0iMjAyNS0w
-MS0xNyAxMDozNzo0NCIscmV2aXNpb249MV1dbHo0AFQAAABEEAAA8Ah7e2JtcD11c2VyZGF0YSgi
-aTE2IiwzMgMALyIwAQD--------------------7oSIpLHBhbl94PTAIANJ5PTAsdGlsZV9oPTE2
-CgBgdz0xNn19
-:: sfx/.info.pod
---[[pod,created="2026-03-27 05:34:19",modified="2026-04-19 14:21:35"]]
-:: sfx/0.sfx
-b64$LS1bW3BvZCxjcmVhdGVkPSIyMDI1LTA3LTMxIDA4OjMwOjI4Iixtb2RpZmllZD0iMjAyNS0w
-Ny0zMSAwODozMDoyOCIscmV2aXNpb249MF1dbHo0AKAAAAALCgAA-zBweHUAAygAAAQABA9AEAIO
-AAGgASACoA4ADxAADfDKAQIDQA8PkAQFBgdADJAICQoLQAyQDwwPDQ8ODEAM8P8BAOv-J6oBEAYP
-MBABIAEgAfAAAhACDhABIA8hIAEwD0Dwww8oD--wxg-4Cg--D4AP9w8NAfAJARAGDjAA------_9
-H-8BAKzPyA9AAA8QQP--sPD-AQD-6lD-----KQ==
-:: [eoc]

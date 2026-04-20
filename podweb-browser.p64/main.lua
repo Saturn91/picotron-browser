@@ -48,7 +48,43 @@ function go_forward()
 end
 
 local CONT_Y = BAR_H + 1
-local CONT_H = H - BAR_H - 1
+CONT_H = H - BAR_H - 1
+
+local function create_url_bar(display_text)
+  gui     = create_gui()
+  url_bar = gui:attach_text_editor{
+    x      = RELOAD_BTN.x + RELOAD_BTN.w + 4,
+    y      = 2,
+    width  = COPY_BTN.x - (RELOAD_BTN.x + RELOAD_BTN.w + 4) - 4,
+    height = BAR_H - 4,
+    key_callback = {
+      ["enter"] = function(self, k)
+        local input = self:get_text()[1]
+        if input and input ~= "" then
+          navigate_to(resolve_url(input) or input)
+        end
+        return nil
+      end
+    }
+  }
+  if url_bar.set_text and display_text then
+    url_bar:set_text(display_text)
+  end
+end
+
+local function check_resize()
+  local nw = get_display():width()
+  local nh = get_display():height()
+  if nw ~= W or nh ~= H then
+    W, H         = nw, nh
+    CONT_H       = H - BAR_H - 1
+    COPY_BTN.x   = W - 32
+    SUBMIT_BTN.x = W - 16
+    local cur_text = url_bar and url_bar.get_text and url_bar:get_text()[1]
+    create_url_bar(cur_text or current_url)
+    if current_url then load_page() end
+  end
+end
 
 local ERROR_PAGE = [[
 [p] ------------------------------------
@@ -107,7 +143,7 @@ local POPUP_PAD_X  = 6
 local POPUP_PAD_Y  = 3
 local POPUP_H      = 5 + POPUP_PAD_Y * 2
 local POPUP_RIGHT  = 4
-local POPUP_BOTTOM = 14
+local POPUP_BOTTOM = 2
 local POPUP_GAP    = 2
 local POPUP_MAX    = 10
 
@@ -192,7 +228,7 @@ function _init()
 			end
 	}
 
-  local markdown_renderer_src = fetch("podnet://48932/podweb-markdown.lua")
+  local markdown_renderer_src = fetch("podnet://48932/podweb-markdown-bad.lua")
   if markdown_renderer_src then
     load(markdown_renderer_src)()
     print("successfully downloaded saturn91 latest parser")
@@ -201,7 +237,6 @@ function _init()
   	 include("podweb-markdown.lua")
   end
 
-  gui         = create_gui()
   current_url = HOME_URL
   document    = nil
   url_bar     = nil
@@ -211,27 +246,13 @@ function _init()
 
   load_known_domains()
   popup("Welcome to Podweb Browser v" .. VERSION)
-  url_bar = gui:attach_text_editor{
-    x      = RELOAD_BTN.x + RELOAD_BTN.w + 4,
-    y      = 2,
-    width  = COPY_BTN.x - (RELOAD_BTN.x + RELOAD_BTN.w + 4) - 4,
-    height = BAR_H - 4,
-    key_callback = {
-      ["enter"] = function(self, k)
-        local input = self:get_text()[1]
-        if input and input ~= "" then
-          navigate_to(resolve_url(input) or input)
-        end
-        return nil
-      end
-    }
-  }
-  if url_bar.set_text then url_bar:set_text(current_url) end
+  create_url_bar(current_url)
   push_history(current_url)
   load_page()
 end
 
 function _update()
+  check_resize()
   if document then
     pdw_update(document)
     if document.copied then

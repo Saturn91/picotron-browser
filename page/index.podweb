@@ -40,6 +40,8 @@ one user's page to another.
 [link file=roadmap.podweb] roadmap
 
 [h2] update history
+[p] version 1.4.4 configurable as tabbed or resizable window via settings
+
 [p] version 1.4.3 tabbed window
 
 [p] version 1.4.2 cart icon and copy button (use the button to get the real url)

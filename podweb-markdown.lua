@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-04-17 08:26:09",modified="2026-04-19 11:00:00",revision=8]]
+--[[pod_format="raw",created="2026-04-17 08:26:09",modified="2026-04-20 21:08:15",revision=28,xstickers={}]]
 -- podweb-markdown.lua
 -- API: pdw_parse(src, width, height) -> document, max_scroll
 --      pdw_update(document)          -> handles scrolling, links, copy
@@ -330,8 +330,8 @@ local function layout_nodes(nodes, cont_w)
       for code_line in string.gmatch(node.text .. "\n", "([^\n]*)\n") do
         add(code_lines, code_line)
       end
-      local block_h = #code_lines * mono_lh + 6
-      local copy_w  = measure("copy")
+      local block_h  = #code_lines * mono_lh + 6
+      local copy_w   = measure("copy")
       _apply_font(nil)
       y += 2
       add(items, { tag="code", lines=code_lines, y=y, h=block_h, copy_str=node.text, line_h=mono_lh, copy_w=copy_w })
@@ -407,7 +407,7 @@ local function layout_nodes(nodes, cont_w)
   for _, item in ipairs(items) do
     bottom = max(bottom, item.y + (item.h or item.line_h or LINE_H))
   end
-  return items, bottom + 14
+  return items, bottom + 2
 end
 
 -- hover helpers (use doc.ox/oy set by pdw_doc the previous frame)
