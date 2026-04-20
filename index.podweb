@@ -29,6 +29,8 @@ This browser fetches that file and renders it. Links let you hop from
 one user's page to another.
 [-p]
 
+[link file=debug.podweb] Help my page does not work!
+
 [link file=about.podweb] Learn more about this project
 
 [link file=how-to.podweb] Create your own page

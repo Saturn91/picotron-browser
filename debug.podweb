@@ -1,0 +1,71 @@
+[h1] Your page doesn't work?
+
+[p] This page will help you debugging issues with your page
+
+[img url=podnet://48932/debugging.png]
+
+[h1] my page does not exist
+
+[p] you are trying to open your page via url
+
+[p] - tipp1 ALWAYS try to open it via the podnet or https url first not the domain you set!
+[p] - tipp2 check on your picotron if the file actually exists
+
+[h2] Your do not use the right user id
+
+[code-]
+podnet://<USER-ID>/index.podweb
+
+<USER-ID> should be the string (which looks like a number) you get when typing:
+print(stat(64))
+
+in my case: 48932
+so my link is: podnet://48932/index.podweb
+[-code]
+
+[h2] your page does not exist
+
+[p] check that your file actually is available in the podnet or at the https url you are entering
+
+[p] how to do that?
+
+[p] open your default browser and enter either the https:// url if you are not using podnet 
+
+[p] or this extended podnet url which is available in the world wide web to (example for my index page)
+
+[code-]
+https://podnet.flp.io/48932/index.podweb
+[-code]
+
+[p] if your browser downloads a file AND the file contains what you edited - you did all right
+
+[h1] My page does not upload
+
+[p] if your file does not upload, please check if your file contains what you expect it to contain by checking what happens if you download it from the www (see last chapture)
+
+[p] alternativly it can happen that you missspelled some markup, tags which are not correct will not get rendered
+
+[p] examples
+
+[code-]
+--missing space after p
+[p]I will not show up
+
+--no tag
+[p] I work as expected
+I will not show up
+[-code]
+
+[h1] nothing helped or your page is buggy or does show a 404
+
+[p] some more tipps
+[p] - delete all code and add line by line in until it breaks, the last change you did contains your issue
+[p] - try a minimal example
+
+[code-]
+[h1] hello world
+[-code]
+
+[p] if this works your page exists and is reachable but your code before had some issues
+
+[p] if this still leads to a 404 your page is probably not available repeat the first few steps
