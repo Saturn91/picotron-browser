@@ -8,8 +8,8 @@
 
 [p] you are trying to open your page via url
 
-[p] - tipp1 ALWAYS try to open it via the podnet or https url first not the domain you set!
-[p] - tipp2 check on your picotron if the file actually exists
+[p] - tip1 ALWAYS try to open it via the podnet or https url first not the domain you set!
+[p] - tip2 check on your picotron if the file actually exists
 
 [h2] Your do not use the right user id
 
@@ -41,7 +41,7 @@ https://podnet.flp.io/48932/index.podweb
 
 [h1] My page does not upload
 
-[p] if your file does not upload, please check if your file contains what you expect it to contain by checking what happens if you download it from the www (see last chapture)
+[p] if your file does not upload, please check if your file contains what you expect it to contain by checking what happens if you download it from the www (see last chapter)
 
 [p] alternativly it can happen that you missspelled some markup, tags which are not correct will not get rendered
 
@@ -58,7 +58,7 @@ I will not show up
 
 [h1] nothing helped or your page is buggy or does show a 404
 
-[p] some more tipps
+[p] some more tips
 [p] - delete all code and add line by line in until it breaks, the last change you did contains your issue
 [p] - try a minimal example
 
