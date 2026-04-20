@@ -459,7 +459,7 @@ local function layout_nodes(nodes, cont_w)
   for _, item in ipairs(items) do
     bottom = max(bottom, item.y + (item.h or item.line_h or LINE_H))
   end
-  return items, bottom + 32
+  return items, bottom + 14
 end
 
 -- hover helpers (use doc.ox/oy set by pdw_doc the previous frame)

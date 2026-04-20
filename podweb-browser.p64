@@ -8,7 +8,7 @@ version 2
 --[[pod_format="raw",created="2026-04-17 10:47:47",modified="2026-04-20 16:52:01",revision=5]]
 -- Screen dimensions, layout metrics, and network configuration
 
-VERSION      = "1.4.2"
+VERSION      = "1.4.3"
 
 W, H         = 480, 270
 BAR_H        = 16
@@ -84,13 +84,13 @@ function resolve_url(input)
 end
 
 :: main.lua
---[[pod_format="raw",created="2026-04-17 09:53:00",modified="2026-04-20 13:42:24",revision=78]]
+--[[pod_format="raw",created="2026-04-17 09:53:00",modified="2026-04-20 18:04:04",revision=81]]
 -- Podweb Browser v0.3 - entry point, state, and lifecycle
 include("config.lua")
 include("domains.lua")
 include("renderer.lua")
 
-window({ width=W, height=H, title="Podweb Browser v" .. VERSION})
+window({ width=W, height=H, title="Podweb Browser v" .. VERSION, tabbed=true})
 
 local markdown_renderer_src = fetch("podnet://48932/podweb-markdown.lua")
 if markdown_renderer_src then
@@ -207,7 +207,7 @@ local POPUP_PAD_X  = 6
 local POPUP_PAD_Y  = 3
 local POPUP_H      = 5 + POPUP_PAD_Y * 2
 local POPUP_RIGHT  = 4
-local POPUP_BOTTOM = 30
+local POPUP_BOTTOM = 14
 local POPUP_GAP    = 2
 local POPUP_MAX    = 10
 
@@ -734,7 +734,7 @@ local function layout_nodes(nodes, cont_w)
   for _, item in ipairs(items) do
     bottom = max(bottom, item.y + (item.h or item.line_h or LINE_H))
   end
-  return items, bottom + 32
+  return items, bottom + 14
 end
 
 -- hover helpers (use doc.ox/oy set by pdw_doc the previous frame)
@@ -1028,9 +1028,9 @@ function draw_address_bar()
 end
 
 :: .info.pod
---[[pod,author="Saturn91",created="2026-04-16 00:00:00",icon=userdata("u8",16,16,"0000000202020202020202020200000000000207070707070707070707020000000207171717170e0e0e0e17170702000207171717170e080808080e1717070202071717170e0808080808080e170702020717170e080808171708080e170702020717170e080817171708080e170702020717170e080817170808080e170702020717170e0808080808080e17170702020717170e08080808080e1717170702020717170e08080e1717171717170702021707170e08080e171717171707170202171707070707070707070707171702000217171717171717171717171702000000021717171717171717171702000000000002020202020202020202000000"),modified="2026-04-20 16:52:01",notes="Browse the Podweb in style!",runtime=25,title="Podweb Browser",version="1.4.2",workspaces={{location="main.lua#8",workspace_index=1},{location="domains.lua",workspace_index=1},{location="podweb-markdown.lua#477",workspace_index=1},{location="config.lua#3",workspace_index=1},{location="gfx/ui.gfx#4",workspace_index=2},{location="gfx/0.gfx#5",workspace_index=2}}]]
+--[[pod,author="Saturn91",created="2026-04-16 00:00:00",icon=userdata("u8",16,16,"0000000202020202020202020200000000000207070707070707070707020000000207171717170e0e0e0e17170702000207171717170e080808080e1717070202071717170e0808080808080e170702020717170e080808171708080e170702020717170e080817171708080e170702020717170e080817170808080e170702020717170e0808080808080e17170702020717170e08080808080e1717170702020717170e08080e1717171717170702021707170e08080e171717171707170202171707070707070707070707171702000217171717171717171717171702000000021717171717171717171702000000000002020202020202020202000000"),modified="2026-04-20 18:04:05",notes="Browse the Podweb in style!",runtime=25,title="Podweb Browser",version="1.4.3",workspaces={{location="main.lua#8",workspace_index=1},{location="domains.lua",workspace_index=1},{location="podweb-markdown.lua#477",workspace_index=1},{location="config.lua#3",workspace_index=1},{location="gfx/ui.gfx#4",workspace_index=2},{location="gfx/0.gfx#5",workspace_index=2}}]]
 :: gfx/.info.pod
---[[pod,created="2026-04-16 21:08:59",modified="2026-04-20 16:52:01"]]
+--[[pod,created="2026-04-16 21:08:59",modified="2026-04-20 18:04:05"]]
 :: gfx/0.gfx
 b64$LS1bW3BvZCxjcmVhdGVkPSIyMDI2LTA0LTE3IDIwOjMzOjUyIixtb2RpZmllZD0iMjAyNi0w
 NC0yMCAxNjoyNDoyOCIscmV2aXNpb249MTRdXWx6NADuAAAAbjEAAPMhe1swXT17Ym1wPXB4dQBD
@@ -1748,7 +1748,7 @@ FDTAFMY0FMA0FDQUwTQUNBTANBTENBTANBTCNBQ0FMA0FDQUwDQU-f39-f39xjQUwjQUwjTCFMA0
 wRTANBTBNMIUxDQUwDQUNBTANBQ0FMA0FDQUxzQUwDQUNBQ0FDQUNBTANBTENBTANBTANMEUNBTA
 NBQ0whT9-f39-f3AAAAAAAAAAAE=
 :: map/.info.pod
---[[pod,created="2026-04-16 21:08:59",modified="2026-04-20 16:52:01"]]
+--[[pod,created="2026-04-16 21:08:59",modified="2026-04-20 18:04:05"]]
 :: sfx/.info.pod
---[[pod,created="2026-04-16 21:08:59",modified="2026-04-20 16:52:01"]]
+--[[pod,created="2026-04-16 21:08:59",modified="2026-04-20 18:04:05"]]
 :: [eoc]
