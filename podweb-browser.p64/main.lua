@@ -50,6 +50,11 @@ end
 local CONT_Y = BAR_H + 1
 CONT_H = H - BAR_H - 1
 
+local loading         = false
+local loading_co      = nil
+local load_started_at = 0
+local MIN_LOAD_FRAMES = 30  -- 0.5s at 60fps
+
 local function create_url_bar(display_text)
   gui     = create_gui()
   url_bar = gui:attach_text_editor{
@@ -96,45 +101,74 @@ local ERROR_PAGE = [[
 [p] ---------------------------------------
 ]]
 
-function load_page()
+local function do_load_page()
   document = nil
   local src, err = fetch(current_url)
+  yield()
   if src and src ~= "" then
     document = pdw_parse(src, W, CONT_H)
+    yield()
     if #document.items == 0 then
       document = pdw_parse(ERROR_PAGE, W, CONT_H)
       if url_bar and url_bar.set_text then url_bar:set_text(current_url) end
-      return
-    end
-    local meta = document.meta
-    if meta.domain then
-      local uid = string.match(current_url, "podnet://(%d+)/")
-               or string.match(current_url, "^(https?://[^/]+)")
-      register_domain_if_new(meta.domain, uid)
-    end
-    local uid            = string.match(current_url, "podnet://(%d+)/")
-                        or string.match(current_url, "^(https?://[^/]+)")
-    local display_domain = meta.domain
-    if display_domain and known_domains[display_domain] ~= nil
-       and known_domains[display_domain] ~= uid then
-      display_domain = nil
-    end
-    if not display_domain then
-      for domain, id in pairs(known_domains) do
-        if id == uid then display_domain = domain; break end
+    else
+      local meta = document.meta
+      if meta.domain then
+        local uid = string.match(current_url, "podnet://(%d+)/")
+                 or string.match(current_url, "^(https?://[^/]+)")
+        register_domain_if_new(meta.domain, uid)
       end
+      local uid            = string.match(current_url, "podnet://(%d+)/")
+                          or string.match(current_url, "^(https?://[^/]+)")
+      local display_domain = meta.domain
+      if display_domain and known_domains[display_domain] ~= nil
+         and known_domains[display_domain] ~= uid then
+        display_domain = nil
+      end
+      if not display_domain then
+        for domain, id in pairs(known_domains) do
+          if id == uid then display_domain = domain; break end
+        end
+      end
+      local path = string.match(current_url, "podnet://%d+/(.+)")
+                or string.match(current_url, "^https?://[^/]+/(.+)")
+                or ""
+      local display = display_domain
+        and (display_domain .. "/" .. path)
+        or  current_url
+      if url_bar and url_bar.set_text then url_bar:set_text(display) end
     end
-    local path = string.match(current_url, "podnet://%d+/(.+)")
-              or string.match(current_url, "^https?://[^/]+/(.+)")
-              or ""
-    local display = display_domain
-      and (display_domain .. "/" .. path)
-      or  current_url
-    if url_bar and url_bar.set_text then url_bar:set_text(display) end
   else
     document = pdw_parse(ERROR_PAGE, W, CONT_H)
     if url_bar and url_bar.set_text then url_bar:set_text(current_url) end
   end
+  while popup_frame - load_started_at < MIN_LOAD_FRAMES do
+    yield()
+  end
+  loading = false
+end
+
+function load_page()
+  loading         = true
+  load_started_at = popup_frame
+  loading_co      = cocreate(do_load_page)
+end
+
+local function draw_loading()
+  local step  = (flr(popup_frame / 10) % 3) + 1
+  local msg   = "Loading" .. string.rep(".", step)
+  local pad_x = 10
+  local pad_y = 6
+  local tw    = print("Loading...", 0, -100)
+  local bw    = tw + pad_x * 2
+  local bh    = 5  + pad_y * 2
+  local cx    = flr(W / 2)
+  local cy    = flr((CONT_Y + H) / 2)
+  local bx    = cx - flr(bw / 2)
+  local by    = cy - flr(bh / 2)
+  rectfill(bx, by, bx + bw, by + bh, 0)
+  rect    (bx, by, bx + bw, by + bh, 7)
+  print(msg, bx + pad_x, by + pad_y, 7)
 end
 
 -- -- popup system ---------------------------------------------------------------
@@ -228,7 +262,7 @@ function _init()
 			end
 	}
 
-  local markdown_renderer_src = fetch("podnet://48932/podweb-markdown-bad.lua")
+  local markdown_renderer_src = fetch("podnet://48932/podweb-markdown.lua")
   if markdown_renderer_src then
     load(markdown_renderer_src)()
     print("successfully downloaded saturn91 latest parser")
@@ -253,6 +287,18 @@ end
 
 function _update()
   check_resize()
+
+  if loading then
+    if loading_co and costatus(loading_co) ~= "dead" then
+      coresume(loading_co)
+    else
+      loading = false
+    end
+    gui:update_all()
+    update_popups()
+    return
+  end
+
   if document then
     pdw_update(document)
     if document.copied then
@@ -300,4 +346,5 @@ function _draw()
   if document then pdw_doc(document, 0, CONT_Y) end
   gui:draw_all()
   draw_popups()
+  if loading then draw_loading() end
 end
