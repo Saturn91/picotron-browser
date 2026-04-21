@@ -265,15 +265,7 @@ function _init()
 			end
 	}
 
-  local markdown_renderer_src = fetch("podnet://48932/podweb-markdown.lua")
-  if markdown_renderer_src then
-    load(markdown_renderer_src)()
-    print("successfully downloaded saturn91 latest parser")
-  else
-    print("falling back to local parser")
-     popup("falling back to local parser")
-  	 include("podweb-markdown.lua")
-  end
+  include("podweb-markdown.lua")
 
   current_url = HOME_URL
   document    = nil
