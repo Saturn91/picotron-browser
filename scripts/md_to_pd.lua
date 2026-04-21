@@ -1,0 +1,162 @@
+--[[pod_format="raw",created="2026-04-21 00:00:00",modified="2026-04-21 00:00:00",revision=1]]
+-- md_to_pd.lua  —  convert a Markdown file to podweb format
+-- Usage (from terminal, in the folder containing your .md file):
+--   lua /path/to/md_to_pd.lua myfile.md
+-- Output is written next to the source as myfile.podweb
+
+cd(env().path)
+
+local raw_arg = env().argv[1]
+if not raw_arg then
+  print("usage: md_to_pd <file.md>")
+  return
+end
+
+local function unquote(s)
+  return string.match(s, '^"(.*)"$') or s
+end
+
+local path = unquote(pod(raw_arg))
+local src  = fetch(path)
+if not src then
+  print("error: file not found: " .. path)
+  return
+end
+
+local function trim(s)
+  return string.match(s, "^%s*(.-)%s*$")
+end
+
+local function strip_fmt(s)
+  s = string.gsub(s, "%*%*(.-)%*%*", "%1")
+  s = string.gsub(s, "__(.-)__",     "%1")
+  s = string.gsub(s, "%*(.-)%*",     "%1")
+  s = string.gsub(s, "_(.-)_",       "%1")
+  s = string.gsub(s, "`(.-)`",       "%1")
+  return s
+end
+
+local function convert_links(s)
+  -- inline image: ![alt](url) -> strip to alt text (no inline img in podweb)
+  s = string.gsub(s, "!%[(.-)%]%((.-)%)", "%1")
+  -- inline link: [text](url) -> [link- url="url"]text[-link]
+  s = string.gsub(s, "%[(.-)%]%((.-)%)", function(text, url)
+    return '[link- url="' .. url .. '"]' .. text .. '[-link]'
+  end)
+  return s
+end
+
+local function is_special(l)
+  return l == ""
+      or string.match(l, "^#+ ")
+      or string.match(l, "^```")
+      or string.match(l, "^%-%-%-+%s*$")
+      or string.match(l, "^%*%*%*+%s*$")
+      or string.match(l, "^___+%s*$")
+      or string.match(l, "^> ")
+      or string.match(l, "^[%-%*%+] ")
+      or string.match(l, "^%d+%. ")
+      or string.match(l, "^!?%[.-%]%(.-%)")
+end
+
+local lines = {}
+for line in string.gmatch(src .. "\n", "([^\n]*)\n") do
+  add(lines, line)
+end
+
+local out = {}
+local function emit(s) add(out, s) end
+
+local i = 1
+while i <= #lines do
+  local raw = trim(lines[i])
+
+  -- fenced code block
+  if string.match(raw, "^```") then
+    emit("[code-]")
+    i += 1
+    while i <= #lines do
+      local cl = trim(lines[i])
+      if string.match(cl, "^```") then i += 1 ; break end
+      emit(lines[i])
+      i += 1
+    end
+    emit("[-code]")
+    emit("")
+
+  -- headings
+  elseif string.match(raw, "^### (.+)") then
+    emit("[h3] " .. strip_fmt(string.match(raw, "^### (.+)")))
+    emit("") ; i += 1
+
+  elseif string.match(raw, "^## (.+)") then
+    emit("[h2] " .. strip_fmt(string.match(raw, "^## (.+)")))
+    emit("") ; i += 1
+
+  elseif string.match(raw, "^# (.+)") then
+    emit("[h1] " .. strip_fmt(string.match(raw, "^# (.+)")))
+    emit("") ; i += 1
+
+  -- horizontal rule
+  elseif string.match(raw, "^%-%-%-+%s*$")
+      or string.match(raw, "^%*%*%*+%s*$")
+      or string.match(raw, "^___+%s*$") then
+    emit("[p] ---")
+    emit("") ; i += 1
+
+  -- block quote
+  elseif string.match(raw, "^> ") then
+    emit("[p] " .. strip_fmt(convert_links(string.match(raw, "^> (.+)"))))
+    emit("") ; i += 1
+
+  -- list item
+  elseif string.match(raw, "^[%-%*%+] (.+)") or string.match(raw, "^%d+%. (.+)") then
+    local text = string.match(raw, "^[%-%*%+] (.+)") or string.match(raw, "^%d+%. (.+)")
+    emit("[p] - " .. strip_fmt(convert_links(text)))
+    i += 1
+
+  -- standalone image: ![alt](url)
+  elseif string.match(raw, "^!%[(.-)%]%((.-)%)$") then
+    local alt, url = string.match(raw, "^!%[(.-)%]%((.-)%)$")
+    emit("[img url=" .. url .. " alt=" .. alt .. "]")
+    emit("") ; i += 1
+
+  -- standalone link: [text](url)
+  elseif string.match(raw, "^%[(.-)%]%((.-)%)$") then
+    local text, url = string.match(raw, "^%[(.-)%]%((.-)%)$")
+    emit('[link url="' .. url .. '"] ' .. strip_fmt(text))
+    emit("") ; i += 1
+
+  -- blank line
+  elseif raw == "" then
+    i += 1
+
+  -- paragraph: collect consecutive non-special lines
+  else
+    local para = {}
+    while i <= #lines do
+      local pl = trim(lines[i])
+      if is_special(pl) then break end
+      add(para, strip_fmt(convert_links(pl)))
+      i += 1
+    end
+    if #para == 1 then
+      emit("[p] " .. para[1])
+    else
+      emit("[p-]")
+      for _, pl in ipairs(para) do emit(pl) end
+      emit("[-p]")
+    end
+    emit("")
+  end
+end
+
+-- join and write
+local result = ""
+for j, line in ipairs(out) do
+  result ..= line .. (j < #out and "\n" or "")
+end
+
+local out_path = string.gsub(path, "%.[^%.]*$", "") .. ".podweb"
+store(out_path, result)
+print("written to: " .. out_path)

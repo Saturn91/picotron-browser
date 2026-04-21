@@ -151,6 +151,7 @@ end
 
 local function parse_podweb(src)
   local nodes, lines, meta = {}, {}, {}
+  src = string.gsub(src, "^%-%-%[%[.-%]%]", "")
   for line in string.gmatch(src .. "\n", "([^\n]*)\n") do add(lines, (string.gsub(line, "\r$", ""))) end
 
   local i = 1
