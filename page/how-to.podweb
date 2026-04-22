@@ -7,7 +7,7 @@ tied to their account - just drop an index.podweb file there and you are live.
 You can also host on the world wide web via https.
 [-p]
 
-[p] Already know markdown? [link- file=markdown-to.podweb]See how podweb compares[-link].
+[p] Already know markdown? [link- file=markdown-to.podweb]click here[-link] We can handle that to... sort of.
 
 [h2] A complete example
 
@@ -25,6 +25,8 @@ domain: yourname.podweb
 [h3] A sub section
 
 [p] This is a short paragraph.
+
+[p font=fancy] This is a paragraph in the above connected fancy font
 
 [p-]
 This is a longer paragraph that spans
