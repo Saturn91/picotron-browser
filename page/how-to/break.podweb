@@ -1,0 +1,33 @@
+[h1] Break - vertical spacing
+
+[p] The break tag inserts empty vertical space between elements.
+
+[h2] Default
+
+[code-]
+[break]
+[-code]
+
+[p] Inserts one line of blank space (10 pixels).
+
+[h2] Custom height
+
+[code-]
+[break height=40]
+[-code]
+
+[p] The height= value sets the gap size in pixels.
+
+[h2] Example
+
+[code-]
+[h2] Section one
+[p] Some content here.
+
+[break height=30]
+
+[h2] Section two
+[p] More content after a larger gap.
+[-code]
+
+[link file=how-to.podweb] back to how-to

@@ -1,0 +1,41 @@
+[h1] Custom fonts
+
+[p-]
+Load custom fonts from podnet and use them on headings, paragraphs,
+and links. Declare all fonts at the top of your file (right after the
+meta block) before any tag uses them.
+[-p]
+
+[code-]
+[font id=fancy url=podnet://78402/fonts/widesquat.font height=10]
+[font id=wide  url=podnet://78402/fonts/lilwide.font   height=8]
+[-code]
+
+[p] Reference a font by its id using the font= property on any supported tag:
+
+[code-]
+[h1 font=fancy] Title in fancy font
+[h2 font=wide]  Section in wide font
+[h3 font=fancy] Sub-section in fancy font
+[p  font=fancy] A short paragraph in the fancy font.
+[p- font=fancy]
+A multi-line paragraph
+in the fancy font.
+[-p]
+[link file=other.podweb font=wide] Link label in wide font
+[-code]
+
+[h2] height
+
+[p-]
+The height= value is the pixel height of the font characters.
+Line spacing is height + 2 pixels.
+If the font URL cannot be fetched, the browser silently falls back
+to the default font - so a broken URL will never crash your page.
+[-p]
+
+[p] Looking for fonts to use? Check out this collection:
+
+[link user=78402 file=podweb/fonts.podweb] great fonts by thelxinoe5
+
+[link file=how-to.podweb] back to how-to

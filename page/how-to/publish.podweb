@@ -1,0 +1,116 @@
+[h1] Publishing your page
+
+[h2] Step 1 - open .podweb files in the text editor
+
+[p] Run this once in the Picotron terminal:
+
+[code-]
+default_app podweb /system/apps/notebook.p64
+[-code]
+
+[p] From now on double-clicking any .podweb file opens it in the text editor.
+
+[h2] The easy way - edit directly on podnet
+
+[p] Open your podnet folder in the file browser:
+
+[code-]
+open("podnet://")
+[-code]
+
+[p] Create a file called index.podweb and start writing. It is live immediately.
+
+[h2] Keeping a local copy
+
+[p] Write your file locally, then push it to podnet:
+
+[code-]
+store("podnet://"..stat(64).."/index.podweb", fetch("/your/local/path.podweb"))
+[-code]
+
+[h2] Your user ID
+
+[p] Find your numeric ID in the Picotron terminal:
+
+[code-]
+print(stat(64))
+[-code]
+
+[p-]
+After publishing, anyone with the browser can visit your page at:
+podnet://YOUR_USER_ID/index.podweb
+[-p]
+
+[h2] The publish tool (optional shortcut)
+
+[p] Save this script to /appdata/system/util/publish.lua:
+
+[code-]
+cd(env().path)
+local raw1 = env().argv[1]
+if raw1 == nil then
+    print("execution failed, please provide a filename e.g. index.podweb")
+    return
+end
+local function unquote(s)
+    if s == nil then return nil end
+    return string.match(s, '^"(.*)"$') or s
+end
+local arg1 = unquote(pod(raw1))
+local target_path = "podnet://" .. stat(64) .. "/" .. arg1
+local file_path = env().path .. "/" .. arg1
+local value = fetch(file_path)
+if value == nil then
+    print("no file found at: " .. file_path)
+    return
+end
+store(target_path, value)
+print("published to: " .. target_path)
+[-code]
+
+[p] Then from the folder containing your .podweb file:
+
+[code-]
+publish index.podweb
+[-code]
+
+[h2] Hosting on the world wide web (advanced)
+
+[p-]
+Since version 1.2.2 the browser can load pages hosted at https URLs.
+The easiest approach is a GitHub Pages repository.
+[-p]
+
+[code-]
+-- repo layout
+index.podweb
+other-page.podweb
+[-code]
+
+[p] Access it via its https URL:
+
+[code-]
+https://<YOUR-GITHUB-USER>.github.io/<YOUR-REPO>/index.podweb
+[-code]
+
+[p] A real example:
+
+[code-]
+https://saturn91.github.io/saturn91-dev-2_0-react-ts/index.podweb
+[-code]
+
+[p] Link to it from other podweb pages:
+
+[code-]
+[link url="https://<YOUR-GITHUB-USER>.github.io/<YOUR-REPO>/index.podweb"] My page
+[-code]
+
+[h2] Share your page
+
+[p-]
+Once your page is live, share your URL with the community. Anyone who
+visits will have the browser automatically remember your domain name
+as a shortcut from that point on.
+[-p]
+
+[link file=how-to.podweb] back to how-to

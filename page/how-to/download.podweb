@@ -1,0 +1,39 @@
+[h1] Download links
+
+[h2] Basic usage
+
+[code-]
+[download url=podnet://YOUR_ID/myfile.txt]
+[download url=https://example.com/myfile.txt]
+[-code]
+
+[p-]
+Clicking the link fetches the file and saves it to
+/appdata/podweb-browser/downloads/ on the visitor's machine.
+A popup confirms where the file landed.
+The link is rendered as: download 'filename'
+[-p]
+
+[h2] align
+
+[p] Download links support align= with values left (default), center, or right:
+
+[code-]
+[download url=podnet://YOUR_ID/myfile.txt align=center]
+[download url=podnet://YOUR_ID/myfile.txt align=right]
+[-code]
+
+[h2] Inline downloads
+
+[p] A download can be embedded inside a paragraph:
+
+[code-]
+[p] Get the [download url=podnet://YOUR_ID/starter.txt] and read it first.
+[-code]
+
+[p-]
+When used inline, the download follows the surrounding paragraph's align
+setting. Any align on the download tag itself is ignored.
+[-p]
+
+[link file=how-to.podweb] back to how-to

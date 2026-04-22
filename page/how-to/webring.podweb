@@ -1,0 +1,58 @@
+[h1] Webrings
+
+[p-]
+A webring connects your page to a curated list of other podweb pages.
+Visitors can browse all member pages using previous and next buttons
+embedded right on your page.
+[-p]
+
+[h2] Adding the widget to your page
+
+[code-]
+[webring my-url=podnet://YOUR_ID/index.podweb, ring-data=podnet://48932/first.webring]
+[-code]
+
+[p-]
+Set my-url to the full podnet URL of the page where the widget appears.
+Set ring-data to the URL of the webring file.
+The widget shows the ring title, a join link, and previous/next buttons.
+[-p]
+
+[p-]
+If your URL is not in the ring yet the buttons navigate from a random
+position until the ring owner adds you.
+[-p]
+
+[h2] The webring file format
+
+[p] A webring is a plain text file on podnet:
+
+[code-]
+<ring title>
+<url to the join page>
+<url of member 1>
+<url of member 2>
+...
+[-code]
+
+[p-]
+The first line is the display title. The second line is a page where
+visitors can learn how to contact you to join. Every following line is
+a member URL.
+[-p]
+
+[h2] Example
+
+[code-]
+the first webring
+podnet://48932/join-webring.podweb
+podnet://48932/index.podweb
+podnet://78402/index.podweb
+podnet://135230/index.podweb
+[-code]
+
+[h2] Joining the first webring
+
+[link file=how-to-webring.podweb] how to join the first webring
+
+[link file=how-to.podweb] back to how-to

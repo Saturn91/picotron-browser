@@ -1,0 +1,28 @@
+[h1] Code blocks
+
+[p-]
+Code blocks display text exactly as written in a monospace font inside
+a dark bordered box. A copy button in the top-right corner puts the
+contents on the clipboard.
+[-p]
+
+[h2] Usage
+
+[code-]
+[code-]
+anything you write here
+appears as-is, line by line
+in a monospace font
+[use -code to close (with - and no space)]
+[-code]
+
+[p-]
+Everything between the opening [code-] and closing [-code] is treated
+as literal text. Tags are not parsed inside a code block.
+[-p]
+
+[p] Code blocks always use the monospace font regardless of any font= set on surrounding tags.
+
+[p] Code blocks cannot be nested.
+
+[link file=how-to.podweb] back to how-to

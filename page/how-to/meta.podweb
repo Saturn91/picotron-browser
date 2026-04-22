@@ -1,0 +1,27 @@
+[h1] The meta block
+
+[p-]
+An optional meta block at the very top of your file sets page-level
+properties. Place it before any other content.
+[-p]
+
+[code-]
+[meta-]
+domain: yourname.podweb
+author: Your Name
+[-meta]
+[-code]
+
+[h2] domain
+
+[p-]
+Registers a short name for your page. Once a visitor loads your page
+their browser remembers that name, so they can type "yourname.podweb"
+in the address bar instead of the full podnet URL.
+[-p]
+
+[h2] author
+
+[p] Optional display name. Not currently shown in the browser but reserved for future use.
+
+[link file=how-to.podweb] back to how-to

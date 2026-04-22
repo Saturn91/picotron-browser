@@ -1,0 +1,49 @@
+[h1] Links
+
+[h2] Linking to podweb pages
+
+[code-]
+[link file=about.podweb] A page on your own podnet
+[link user=12345] Another user's index page
+[link user=12345 file=projects.podweb] A specific page on their podnet
+[-code]
+
+[h2] External https links
+
+[code-]
+[link url="https://example.com/page.podweb"] An external podweb page
+[-code]
+
+[p] The quotes around the url value are required for external links.
+
+[h2] Launching a Picotron cartridge
+
+[code-]
+[link cart=podnet_browser] Launch the Podweb Browser
+[link cart=#podnet_browser] The # prefix is optional
+[-code]
+
+[p-]
+The cart= attribute opens the cartridge using its BBS id (the part after #
+when you run load #podnet_browser). The cart runs alongside the browser
+without closing it.
+[-p]
+
+[h2] align
+
+[p] Links support align= with values left (default), center, or right:
+
+[code-]
+[link file=about.podweb align=center] A centered link
+[link file=about.podweb align=right]  A right-aligned link
+[-code]
+
+[h2] font
+
+[code-]
+[link file=other.podweb font=fancy] Link label in a custom font
+[-code]
+
+[p] See [link- file=how-to/font.podweb]the font page[-link] for how to declare custom fonts.
+
+[link file=how-to.podweb] back to how-to

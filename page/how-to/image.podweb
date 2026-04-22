@@ -1,0 +1,60 @@
+[h1] Images
+
+[h2] Basic usage
+
+[code-]
+[img url=podnet://YOUR_ID/myimage.gfx]
+[img url=podnet://YOUR_ID/myimage.gfx alt=A description of the image]
+[img url=https://example.com/image.png]
+[-code]
+
+[p] The alt= text is shown if the image fails to load.
+
+[h2] align
+
+[p] Default is center. Options: left, center, right.
+
+[code-]
+[img url=podnet://YOUR_ID/banner.gfx align=left]
+[img url=podnet://YOUR_ID/banner.gfx align=center]
+[img url=podnet://YOUR_ID/banner.gfx align=right]
+[-code]
+
+[p-]
+When resize=true (the default) and the image is being scaled down to fit,
+the align property is ignored and the image is always centered.
+[-p]
+
+[h2] resize
+
+[p] Default is true. Controls whether oversized images are scaled down to fit.
+
+[p] resize=true (default):
+
+[code-]
+[img url=podnet://YOUR_ID/big.gfx]
+[img url=podnet://YOUR_ID/big.gfx resize=true]
+[-code]
+
+[p-]
+If the image is wider than the browser content area it is scaled down
+to fit. align is ignored during scaling.
+[-p]
+
+[p] resize=false:
+
+[code-]
+[img url=podnet://YOUR_ID/big.gfx resize=false]
+[img url=podnet://YOUR_ID/big.gfx resize=false align=left]
+[img url=podnet://YOUR_ID/big.gfx resize=false align=right]
+[-code]
+
+[p-]
+The image is drawn at its natural pixel size. If wider than the viewport
+it is clipped at the borders. The align property controls the anchor:
+align=center (default) - image centered, clipped equally on both sides.
+align=left - image starts at the left content edge, clipped on the right.
+align=right - right edge of image meets right content edge, clipped on the left.
+[-p]
+
+[link file=how-to.podweb] back to how-to

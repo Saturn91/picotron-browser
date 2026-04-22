@@ -1,0 +1,32 @@
+[h1] Headings
+
+[p] Three heading levels, each with a distinct style:
+
+[code-]
+[h1] Page Title    <- custom wide font, white, underlined
+[h2] Section       <- default font, blue, underlined
+[h3] Sub-section   <- default font, blue
+[-code]
+
+[h2] align
+
+[p] All headings support align= with values left (default), center, or right:
+
+[code-]
+[h1 align=center] Centered page title
+[h2 align=right]  Right-aligned section
+[h3 align=left]   Left-aligned (default)
+[-code]
+
+[h2] font
+
+[p] Override the font on any heading using font=id:
+
+[code-]
+[h1 font=fancy]              Title in a custom font
+[h2 font=fancy align=center] Custom font and centered
+[-code]
+
+[p] See [link- file=how-to/font.podweb]the font page[-link] for how to declare custom fonts.
+
+[link file=how-to.podweb] back to how-to

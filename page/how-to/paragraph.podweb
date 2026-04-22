@@ -1,0 +1,85 @@
+[h1] Paragraphs
+
+[h2] Inline form
+
+[p] Short text on a single line:
+
+[code-]
+[p] This is a short paragraph.
+[-code]
+
+[h2] Block form
+
+[p] Longer text that spans multiple source lines:
+
+[code-]
+[p-]
+This paragraph can span
+as many lines as you like.
+The browser joins them into one wrapped block of text.
+[-p]
+[-code]
+
+[h2] align
+
+[p] All paragraph tags support align= with values left (default), center, or right:
+
+[code-]
+[p align=center] This line is centered.
+[p align=right]  This line is right-aligned.
+
+[p- align=center]
+Each wrapped line of this paragraph
+will be centered independently.
+[-p]
+[-code]
+
+[h2] Inline links
+
+[p] Embed a link inside paragraph text with link- ... -link:
+
+[code-]
+[p] Visit the [link- file=about.podweb]about page[-link] for details.
+[p] Go to [link- user=12345]this user[-link] or back to [link- file=index.podweb]home[-link].
+[p] Open [link- url="https://example.com/page.podweb"]an external page[-link] too.
+[-code]
+
+[p-]
+All the same attributes as standalone links work here: file=, user=, url="...", cart=.
+Inline links are highlighted and underlined. They wrap across lines correctly
+inside multi-line [p-] blocks too.
+[-p]
+
+[h2] Inline downloads
+
+[p] Embed a download button inside a paragraph:
+
+[code-]
+[p] Get started by [download url=podnet://YOUR_ID/starter.txt] and follow the guide.
+[-code]
+
+[h2] align with inline content
+
+[p-]
+When a paragraph contains inline links or downloads, the entire rendered
+line is treated as one unit for alignment. The paragraph's align is applied
+to the whole line. Any align property on an inline element is ignored.
+[-p]
+
+[code-]
+[p align=center] See [link- file=about.podweb]the about page[-link] for details.
+[-code]
+
+[h2] font
+
+[code-]
+[p font=fancy] Short paragraph in a custom font.
+[p- font=fancy]
+Multi-line paragraph
+in a custom font.
+[-p]
+[-code]
+
+[p] See [link- file=how-to/font.podweb]the font page[-link] for how to declare custom fonts.
+
+[link file=how-to.podweb] back to how-to
