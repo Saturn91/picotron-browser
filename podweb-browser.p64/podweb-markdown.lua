@@ -16,6 +16,53 @@ local CHAR_W   = 4
 local PAD_X    = 6
 local SCROLL_W = 4
 
+-- comment section
+local CSEC_ROW_H   = 12
+local CSEC_VISIBLE = 3
+local CSEC_HDR_H   = 13
+local CSEC_INPUT_H = 18
+local CSEC_SB_W    = 4
+local CSEC_H       = 2 + CSEC_HDR_H + CSEC_VISIBLE * CSEC_ROW_H + CSEC_INPUT_H
+
+local _csec_states = {}
+
+local function _csec_get(uid)
+  if not _csec_states[uid] then
+    _csec_states[uid] = { scroll = 0, editor = nil, pending_submit = false }
+  end
+  return _csec_states[uid]
+end
+
+local function _csec_submit(item, cs)
+  local text = cs.editor and cs.editor:get_text()[1] or ""
+  if text == "" then return end
+  local server    = item.server or "https://test.com"
+  local page_slug = string.match(current_url or "", "/([^/]+)%.podweb$") or "unknown"
+  local text_safe = string.gsub(string.gsub(text, "\\", "\\\\"), '"', '\\"')
+  local body = '{"uid":"'       .. item.uid
+            .. '","page":"'     .. page_slug
+            .. '","user_id":'   .. stat(64)
+            .. ',"username":"'  .. tostring(stat(65))
+            .. '","text":"'     .. text_safe .. '"}'
+  local resp, err = fetch(server .. "/comments", { method = "post", body = body })
+  if err then popup("post failed: " .. tostring(err), 4)
+  else        popup("comment posted!", 3) end
+  if cs.editor then cs.editor:set_text({""}) end
+end
+
+local _MOCK_COMMENTS = {
+  { username = "saturn91",   text = "Just launched this page, excited to share!",  time = "2026-04-10" },
+  { username = "zep",        text = "Love the new podweb format, very cosy.",      time = "2026-04-11" },
+  { username = "alice42",    text = "Found a bug in the scrollbar on mobile.",     time = "2026-04-12" },
+  { username = "bob_codes",  text = "Is a dark mode coming soon?",                 time = "2026-04-13" },
+  { username = "pixel_pete", text = "My favourite page on the whole net.",          time = "2026-04-14" },
+  { username = "loopygal",   text = "Managed to break it with a really long URL.", time = "2026-04-15" },
+  { username = "retro_fan",  text = "Reminds me of old GeoCities, nice.",          time = "2026-04-16" },
+  { username = "codewitch",  text = "The webring integration is clever.",           time = "2026-04-17" },
+  { username = "newbie99",   text = "First time on podweb, how to make a page?",   time = "2026-04-18" },
+  { username = "saturn91",   text = "Update: bug fixed, thanks for reporting!",    time = "2026-04-19" },
+}
+
 local WEBRING_BTN_W   = 44
 local WEBRING_BTN_H   = 13
 local WEBRING_BTN_GAP = 10
@@ -212,6 +259,14 @@ local function parse_podweb(src)
       local align  = string.match(l, "align=(%a+)")
       local resize = string.match(l, "resize=(%a+)")
       if url then add(nodes, { tag="img", url=url, alt=alt or url, align=align, resize=resize }) end
+      i += 1
+
+    elseif string.match(l, "^%[comment") then
+      local uid    = string.match(l, "uid=(%d+)")
+      local server = string.match(l, 'server="([^"]+)"') or string.match(l, "server=([^%s%]\"]+)")
+      if uid then
+        add(nodes, { tag = "comment", uid = uid, server = server })
+      end
       i += 1
 
     elseif string.match(l, "^%[break") then
@@ -428,6 +483,19 @@ local function layout_nodes(nodes, cont_w)
         y += LINE_H + 4
       end
 
+    elseif node.tag == "comment" then
+      y += 4
+      add(items, {
+        tag      = "comment",
+        uid      = node.uid,
+        server   = node.server,
+        y        = y,
+        h        = CSEC_H,
+        line_h   = CSEC_H,
+        comments = _MOCK_COMMENTS,
+      })
+      y += CSEC_H + 4
+
     elseif node.tag == "webring" then
       local raw = fetch(node.ring_url)
       local title, join_url, urls = "webring", nil, {}
@@ -556,6 +624,40 @@ end
 
 -- public API
 
+function pdw_setup_editors(doc, ox, oy)
+  if stat(64) == 0 then return end
+  local bx = ox + PAD_X - 2
+  local bw = doc.cont_w + 4
+  for _, item in ipairs(doc.items) do
+    if item.tag == "comment" then
+      local cs   = _csec_get(item.uid)
+      local ca_y = oy + item.y + CSEC_HDR_H + 1
+      local ia_y = ca_y + CSEC_VISIBLE * CSEC_ROW_H
+      local ib_x = bx + 2
+      local ib_y = ia_y + 3
+      local ib_w = bw - 20
+      local ib_h = 12
+      if cs.editor then
+        cs.editor.x = ib_x
+        cs.editor.y = -1000
+        cs.editor.width  = ib_w - 2
+        cs.editor.height = ib_h - 2
+      else
+        cs.editor = gui:attach_text_editor{
+          x = ib_x, y = -1000,
+          width = ib_w - 2, height = ib_h - 2,
+          key_callback = {
+            ["enter"] = function(self, k)
+              cs.pending_submit = true
+              return nil
+            end
+          }
+        }
+      end
+    end
+  end
+end
+
 function pdw_parse(src, width, height)
   local cont_w           = width - PAD_X * 2 - SCROLL_W
   local nodes, meta      = parse_podweb(src)
@@ -581,15 +683,55 @@ function pdw_update(doc)
   doc.navigated_to      = nil
   doc.copied            = false
   doc.download_requested = nil
-  local _, _, mb, _, mwy = mouse()
+  local mx, my, mb, _, mwy = mouse()
 
   if mwy and mwy ~= 0 then
-    doc.scroll_y = mid(0, doc.scroll_y - mwy * 8, doc.max_scroll)
+    local cs_scroll = false
+    for _, item in ipairs(doc.items) do
+      if item.tag == "comment" then
+        local sy = doc.oy + item.y - doc.scroll_y
+        local bx = doc.ox + PAD_X - 2
+        if mx >= bx and mx < bx + doc.cont_w + 4
+        and my >= sy and my < sy + item.h then
+          local cs    = _csec_get(item.uid)
+          local max_s = max(0, #item.comments * CSEC_ROW_H - CSEC_VISIBLE * CSEC_ROW_H)
+          cs.scroll   = mid(0, cs.scroll - mwy * CSEC_ROW_H, max_s)
+          cs_scroll   = true
+          break
+        end
+      end
+    end
+    if not cs_scroll then
+      doc.scroll_y = mid(0, doc.scroll_y - mwy * 8, doc.max_scroll)
+    end
+  end
+  for _, item in ipairs(doc.items) do
+    if item.tag == "comment" then
+      local cs = _csec_get(item.uid)
+      if cs.pending_submit then
+        cs.pending_submit = false
+        _csec_submit(item, cs)
+      end
+    end
   end
   if btn(2) then doc.scroll_y = max(0,              doc.scroll_y - 3) end
   if btn(3) then doc.scroll_y = min(doc.max_scroll, doc.scroll_y + 3) end
 
   if (doc.prev_mb & 1) == 1 and (mb & 1) == 0 then
+    for _, item in ipairs(doc.items) do
+      if item.tag == "comment" and stat(64) ~= 0 then
+        local cs    = _csec_get(item.uid)
+        local sy    = doc.oy + item.y - doc.scroll_y
+        local bx    = doc.ox + PAD_X - 2
+        local bw    = doc.cont_w + 4
+        local ia_y  = sy + CSEC_HDR_H + 1 + CSEC_VISIBLE * CSEC_ROW_H
+        local ib_y  = ia_y + 3
+        local sub_x = bx + bw - 16
+        if mx >= sub_x and mx < sub_x+14 and my >= ib_y and my < ib_y+12 then
+          cs.pending_submit = true
+        end
+      end
+    end
     for _, item in ipairs(doc.items) do
       if item.tag == "code" and copy_hovered(doc, item) then
         set_clipboard(item.copy_str)
@@ -651,6 +793,13 @@ end
 function pdw_doc(doc, ox, oy)
   doc.ox, doc.oy = ox, oy
   clip(ox, oy, doc.width, doc.height)
+
+  for _, item in ipairs(doc.items) do
+    if item.tag == "comment" then
+      local cs = _csec_get(item.uid)
+      if cs.editor then cs.editor.y = -1000 end
+    end
+  end
 
   for _, item in ipairs(doc.items) do
     local y      = oy + item.y - doc.scroll_y
@@ -743,6 +892,69 @@ function pdw_doc(doc, ox, oy)
             print(seg.text, ox + sx, y, 6)
           end
           sx += sw
+        end
+
+      elseif item.tag == "comment" then
+        _apply_font(nil)
+        local cs = _csec_get(item.uid)
+        local bx = ox + PAD_X - 2
+        local bw = doc.cont_w + 4
+        local bh = item.h
+
+        rectfill(bx, y, bx+bw-1, y+bh-1, 1)
+        rect    (bx, y, bx+bw-1, y+bh-1, 5)
+
+        print("Comments", bx+4, y+2, 7)
+        line(bx, y+CSEC_HDR_H, bx+bw-1, y+CSEC_HDR_H, 5)
+
+        local ca_x = bx + 2
+        local ca_y = y + CSEC_HDR_H + 1
+        local ca_w = bw - 4 - CSEC_SB_W
+        local ca_h = CSEC_VISIBLE * CSEC_ROW_H
+        local sb_x = bx + bw - 1 - CSEC_SB_W
+
+        local cl_y = max(ca_y, oy)
+        local cl_h = min(ca_y + ca_h, oy + doc.height) - cl_y
+        if cl_h > 0 then
+          local name_col_w = 15 * CHAR_W + 2
+          local text_x     = ca_x + 11 + name_col_w + 3
+          clip(ca_x, cl_y, ca_w, cl_h)
+          for ci, c in ipairs(item.comments) do
+            local ry = ca_y + (ci-1) * CSEC_ROW_H - cs.scroll
+            if ry + CSEC_ROW_H > cl_y and ry < cl_y + cl_h then
+              rectfill(ca_x+1, ry+2, ca_x+8, ry+9, 8)
+              local name = #c.username > 15 and string.sub(c.username, 1, 12) .. "..." or c.username
+              print(name, ca_x + 10, ry+2, 12)
+              print(c.text, text_x, ry+2, 6)
+            end
+          end
+          clip(ox, oy, doc.width, doc.height)
+        end
+
+        local total_h = #item.comments * CSEC_ROW_H
+        if total_h > ca_h then
+          local max_s = total_h - ca_h
+          local th    = max(4, flr(ca_h * ca_h / total_h))
+          local ty    = ca_y + flr(cs.scroll / max_s * (ca_h - th))
+          rectfill(sb_x, ca_y, sb_x+CSEC_SB_W-1, ca_y+ca_h-1, 1)
+          rectfill(sb_x, ty,   sb_x+CSEC_SB_W-1, ty+th-1,     5)
+        end
+
+        if stat(64) ~= 0 then
+          local ia_y = ca_y + ca_h
+          line(bx, ia_y, bx+bw-1, ia_y, 5)
+          local ib_x = bx + 2
+          local ib_y = ia_y + 3
+          local ib_w = bw - 20
+          local ib_h = 12
+          if cs.editor then
+            cs.editor.x = ib_x
+            cs.editor.y = ib_y
+          end
+          local sub_x = bx + bw - 16
+          rectfill(sub_x, ib_y, sub_x+13, ib_y+ib_h-1, 1)
+          rect    (sub_x, ib_y, sub_x+13, ib_y+ib_h-1, 5)
+          print("ok", sub_x+3, ib_y+2, 7)
         end
 
       elseif item.text then

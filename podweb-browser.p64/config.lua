@@ -13,6 +13,7 @@ CHAR_W       = 4
 DOMAINS_FILE = "/appdata/podweb-browser/domains.lookup"
 CONFIG_FILE  = "/appdata/podweb-browser/settings.pod"
 HOME_URL     = "podnet://48932/index.podweb"
+DEFAULT_COMMENT_API = "https://webhook.site/45614c70-51b7-4b51-aa42-42956ebdc76d"
 
 BACK_BTN     = { x=4,    y=2, w=12, h=12, sprite=3 }
 FORWARD_BTN  = { x=20,   y=2, w=12, h=12, sprite=4 }

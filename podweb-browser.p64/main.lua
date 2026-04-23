@@ -107,6 +107,7 @@ local function do_load_page()
   yield()
   if src and src ~= "" then
     document = pdw_parse(src, W, CONT_H)
+    pdw_setup_editors(document, 0, CONT_Y)
     yield()
     if #document.items == 0 then
       document = pdw_parse(ERROR_PAGE, W, CONT_H)
