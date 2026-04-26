@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-04-17 10:47:47",modified="2026-04-20 21:08:14",revision=12,xstickers={}]]
+--[[pod_format="raw",created="2026-04-17 10:47:47",modified="2026-04-26 12:36:39",revision=28,xstickers={}]]
 -- Screen dimensions, layout metrics, and network configuration
 
 VERSION      = "1.4.7"
@@ -19,3 +19,17 @@ FORWARD_BTN  = { x=20,   y=2, w=12, h=12, sprite=4 }
 RELOAD_BTN   = { x=36,   y=2, w=12, h=12, sprite=2 }
 COPY_BTN     = { x=W-32, y=2, w=12, h=12, sprite=5 }
 SUBMIT_BTN   = { x=W-16, y=2, w=12, h=12, sprite=1 }
+
+DEFAULT_COLORS = {
+    text             = 6,
+    h1               = 7,
+    h2               = 12,
+    h3               = 12,
+    link             = 30,
+    link_hover       = 29,
+    btn_bg           = 1,
+    btn_bg_hover     = 5,
+    btn_border       = 5,
+    btn_border_hover = 1,
+    btn_text         = 7,
+}

@@ -12,6 +12,8 @@
 --   [h2 font=myid] heading    [p font=myid] inline    [p- font=myid] ... [-p]
 --   [link file=x.podweb font=myid] label    (code blocks always use mono font)
 
+local C = DEFAULT_COLORS
+
 local CHAR_W   = 4
 local PAD_X    = 6
 local SCROLL_W = 4
@@ -661,22 +663,22 @@ function pdw_doc(doc, ox, oy)
       _apply_font(item.font)
 
       if item.tag == "h1" then
-        print("\^u" .. item.text, ox + (item.x_start or PAD_X), y, 7)
+        print("\^u" .. item.text, ox + (item.x_start or PAD_X), y, C.h1)
 
       elseif item.tag == "h2" then
-        print("\^u" .. item.text, ox + (item.x_start or PAD_X), y, 12)
+        print("\^u" .. item.text, ox + (item.x_start or PAD_X), y, C.h2)
 
       elseif item.tag == "h3" then
-        print(item.text, ox + (item.x_start or PAD_X), y, 12)
+        print(item.text, ox + (item.x_start or PAD_X), y, C.h3)
 
       elseif item.tag == "download" then
-        local col = link_hovered(doc, item) and 29 or 30
+        local col = link_hovered(doc, item) and C.link_hover or C.link
         local lx  = ox + (item.x_start or PAD_X)
         print(item.text, lx, y, col)
         line(lx, y+lh-1, lx + item.text_w - 1, y+lh-1, col)
 
       elseif item.tag == "link" then
-        local col = link_hovered(doc, item) and 29 or 30
+        local col = link_hovered(doc, item) and C.link_hover or C.link
         local lx  = ox + (item.x_start or PAD_X)
         print(item.text, lx, y, col)
         line(lx, y+lh-1, lx + item.text_w - 1, y+lh-1, col)
@@ -710,25 +712,25 @@ function pdw_doc(doc, ox, oy)
       elseif item.tag == "webring" then
         _apply_font(nil)
         local gx = ox + PAD_X + flr((doc.cont_w - item.group_w) / 2)
-        print(item.title, gx, y, 6)
+        print(item.title, gx, y, C.text)
         if item.join_url then
           local jx  = gx + item.join_offset_x
-          local jcol = webring_join_hovered(doc, item) and 29 or 30
+          local jcol = webring_join_hovered(doc, item) and C.link_hover or C.link
           print("join us", jx, y, jcol)
           line(jx, y+LINE_H-1, jx+item.join_w-1, y+LINE_H-1, jcol)
         end
         local by = y + LINE_H + 4
         local lx, rx = webring_btn_x(doc, item)
         local ph = webring_btn_hovered(doc, item, "prev")
-        rectfill(lx, by, lx+WEBRING_BTN_W-1, by+WEBRING_BTN_H-1, ph and 5 or 1)
-        rect    (lx, by, lx+WEBRING_BTN_W-1, by+WEBRING_BTN_H-1, ph and 12 or 5)
+        rectfill(lx, by, lx+WEBRING_BTN_W-1, by+WEBRING_BTN_H-1, ph and C.btn_bg_hover or C.btn_bg)
+        rect    (lx, by, lx+WEBRING_BTN_W-1, by+WEBRING_BTN_H-1, ph and C.btn_border_hover or C.btn_border)
         local pw = measure("< prev")
-        print("< prev", lx + flr((WEBRING_BTN_W - pw) / 2), by + flr((WEBRING_BTN_H - LINE_H) / 2) + 1, 7)
+        print("< prev", lx + flr((WEBRING_BTN_W - pw) / 2), by + flr((WEBRING_BTN_H - LINE_H) / 2) + 1, C.btn_text)
         local nh = webring_btn_hovered(doc, item, "next")
-        rectfill(rx, by, rx+WEBRING_BTN_W-1, by+WEBRING_BTN_H-1, nh and 5 or 1)
-        rect    (rx, by, rx+WEBRING_BTN_W-1, by+WEBRING_BTN_H-1, nh and 12 or 5)
+        rectfill(rx, by, rx+WEBRING_BTN_W-1, by+WEBRING_BTN_H-1, nh and C.btn_bg_hover or C.btn_bg)
+        rect    (rx, by, rx+WEBRING_BTN_W-1, by+WEBRING_BTN_H-1, nh and C.btn_border_hover or C.btn_border)
         local nw = measure("next >")
-        print("next >", rx + flr((WEBRING_BTN_W - nw) / 2), by + flr((WEBRING_BTN_H - LINE_H) / 2) + 1, 7)
+        print("next >", rx + flr((WEBRING_BTN_W - nw) / 2), by + flr((WEBRING_BTN_H - LINE_H) / 2) + 1, C.btn_text)
 
       elseif item.tag == "p" and item.segs then
         local sx = item.x_start or PAD_X
@@ -736,17 +738,17 @@ function pdw_doc(doc, ox, oy)
           local sw = measure(seg.text)
           if seg.link or seg.dl then
             local tw = measure((seg.text):match("^(.-)%s*$"))
-            local col = seg_hovered(doc, item, sx, tw) and 29 or 30
+            local col = seg_hovered(doc, item, sx, tw) and C.link_hover or C.link
             print(seg.text, ox + sx, y, col)
             line(ox + sx, y+lh-1, ox + sx + tw - 1, y+lh-1, col)
           else
-            print(seg.text, ox + sx, y, 6)
+            print(seg.text, ox + sx, y, C.text)
           end
           sx += sw
         end
 
       elseif item.text then
-        print(item.text, ox + (item.x_start or PAD_X), y, 6)
+        print(item.text, ox + (item.x_start or PAD_X), y, C.text)
       end
 
       _apply_font(nil)
