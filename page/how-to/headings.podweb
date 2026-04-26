@@ -29,4 +29,16 @@
 
 [p] See [link- file=how-to/font.podweb]the font page[-link] for how to declare custom fonts.
 
+[h2] color
+
+[p] Override the color of any heading with color= (a Picotron palette number):
+
+[code-]
+[h1 color=8] Red title
+[h2 color=11] Green section
+[h3 color=9] Orange sub-section
+[-code]
+
+[p] See [link- file=how-to/colors.podweb]the colors page[-link] for the full theming reference.
+
 [link file=how-to.podweb] back to how-to

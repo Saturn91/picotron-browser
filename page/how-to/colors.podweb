@@ -1,0 +1,94 @@
+[h1] Colors and Theming
+
+[h2] Page theme
+
+[p] Add a [theme-] block anywhere in your page (usually at the top) to override the default browser colors for your entire page:
+
+[code-]
+[theme-]
+bg=7
+text=1
+h1=0
+h2=13
+h3=5
+link=12
+link_hover=13
+btn_bg=6
+btn_bg_hover=12
+btn_border=5
+btn_border_hover=13
+btn_text=1
+[-theme]
+[-code]
+
+[p-]
+All values are Picotron palette numbers (0 to 31). Any key you leave out
+falls back to the browser default. Unknown keys are silently ignored.
+[-p]
+
+[h2] Available theme keys
+
+[code-]
+bg               page background
+text             body text
+h1               h1 heading
+h2               h2 heading
+h3               h3 heading
+link             link and download normal color
+link_hover       link and download hover color
+btn_bg           webring button background (normal)
+btn_bg_hover     webring button background (hovered)
+btn_border       webring button border (normal)
+btn_border_hover webring button border (hovered)
+btn_text         webring button label
+[-code]
+
+[h2] Per-element color
+
+[p] Override the color of any heading, paragraph, link or download with color=:
+
+[code-]
+[h1 color=8] A red title
+[h2 color=11] A green section
+[h3 color=10] A yellow sub-section
+
+[p color=0] This paragraph is black.
+[p- color=5]
+This whole block renders in dark grey.
+[-p]
+
+[link file=other.podweb color=8] A red link
+[download url=podnet://YOUR_ID/file.txt color=9] An orange download
+[-code]
+
+[h2] Hover color on links and downloads
+
+[p] Override the hovered color separately with hover_color=:
+
+[code-]
+[link file=other.podweb color=8 hover_color=9] Red link, orange on hover
+[download url=podnet://YOUR_ID/file.txt hover_color=7] Default color, white on hover
+[-code]
+
+[h2] Inline link colors
+
+[p-]
+Inline links inside paragraphs accept the same color= and hover_color= attributes.
+The outer paragraph color has no effect on inline links - they always use
+their own color=, or fall back to the page theme.
+[-p]
+
+[code-]
+[p] Visit [link- file=about.podweb color=8 hover_color=9]this red link[-link] for details.
+[-code]
+
+[h2] Priority
+
+[p-]
+For any color value the browser picks the first match in this order:
+1. color= (or hover_color=) on the element itself
+2. The [theme-] block on the page
+3. The browser default
+[-p]
+
+[link file=how-to.podweb] back to how-to

@@ -46,4 +46,26 @@ without closing it.
 
 [p] See [link- file=how-to/font.podweb]the font page[-link] for how to declare custom fonts.
 
+[h2] color and hover_color
+
+[p] Set the link color with color= and the hovered color with hover_color=:
+
+[code-]
+[link file=about.podweb color=8] Red link
+[link file=about.podweb color=8 hover_color=9] Red link, orange on hover
+[-code]
+
+[p] The same attributes work on inline links inside paragraphs:
+
+[code-]
+[p] Visit [link- file=about.podweb color=8 hover_color=9]this red link[-link] for details.
+[-code]
+
+[p-]
+Inline links ignore the color= of the surrounding paragraph - they always
+use their own color= first, then fall back to the page theme.
+[-p]
+
+[p] See [link- file=how-to/colors.podweb]the colors page[-link] for the full theming reference.
+
 [link file=how-to.podweb] back to how-to

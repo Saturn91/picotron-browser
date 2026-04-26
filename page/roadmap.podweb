@@ -9,17 +9,17 @@
 [p] - 404 page
 [p] - inline links
 [p] - webrings
-
-[h2] Editable colors
-
-[p] Let users customize the browser color theme to their liking.
-
+[p] - custom colors
 
 [h2] clickable images
 
 [p-]
 Clickable images that navigate to another page when clicked.
 [-p]
+
+[h2] Comment section
+
+[p] I would really love to support comment sections on a webpage... but I have no idea how to implement that yet... so stay tuned :D
 
 [h2] Basic scripting
 

@@ -67,5 +67,7 @@ It can also contain an [link- file=other.podweb]inline link[-link] right inside 
 [link file=how-to/break.podweb] break - vertical spacing
 [link file=how-to/webring.podweb] webring - joining and creating webrings
 [link file=how-to/publish.podweb] publish - getting your page live and sharing it
+[link file=how-to/colors.podweb] colors - theming, per-element color and hover color
+[link file=how-to/tipps-and-tricks.podweb] tips and tricks - coloured nav headers and more
 
 [link file=index.podweb] Back to home

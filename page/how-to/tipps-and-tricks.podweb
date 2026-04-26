@@ -1,0 +1,33 @@
+[h1] Tips and Tricks
+
+[h2] Coloured navigation header
+
+[p-]
+The coloured link bar at the top of the index page is built from a single
+centered paragraph with inline links, each given its own color=.
+The separator characters between them are set to the background color
+so they vanish - leaving only the coloured labels floating side by side.
+[-p]
+
+[code-]
+[font id=wide url=podnet://78402/fonts/lilwide.font height=10]
+
+[p- align=center font=wide color=1]
+[link- file=1.podweb color=18]HOME[-link] / [link- file=2 color=12]DOCS[-link]
+[-p]
+[-code]
+
+[p-]
+How it works:
+color=1 on the paragraph sets the / separators to dark navy, which blends
+into the default browser background and makes them invisible. The currently active link (Home in the example above) gets a different color to show the active state.
+[-p]
+
+[p-]
+If your page has a custom [theme-] background, set the paragraph color=
+to match your bg= value so the separators vanish against it too.
+[-p]
+
+[p] See [link- file=how-to/colors.podweb]the colors and theming reference[-link] for all available color keys and palette numbers.
+
+[link file=how-to.podweb] back to how-to

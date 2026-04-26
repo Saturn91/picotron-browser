@@ -82,4 +82,23 @@ in a custom font.
 
 [p] See [link- file=how-to/font.podweb]the font page[-link] for how to declare custom fonts.
 
+[h2] color
+
+[p] Set the text color of a paragraph with color= (a Picotron palette number):
+
+[code-]
+[p color=0] This text is black.
+[p- color=5]
+This whole block renders in dark grey.
+[-p]
+[-code]
+
+[p-]
+The color= on a paragraph affects plain text only. Inline links inside it
+always use the link color from the theme or their own color= attribute -
+the paragraph color has no influence on them.
+[-p]
+
+[p] See [link- file=how-to/colors.podweb]the colors page[-link] for the full theming reference.
+
 [link file=how-to.podweb] back to how-to
