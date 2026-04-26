@@ -1,3 +1,18 @@
+[theme-]
+bg=7
+text=1
+h1=0
+h2=13
+h3=5
+link=12
+link_hover=13
+btn_bg=6
+btn_bg_hover=12
+btn_border=5
+btn_border_hover=13
+btn_text=1
+[-theme]
+
 [font id=yummies url=podnet://78402/fonts/minie.font height=5]
 
 [h1 align=center] Test

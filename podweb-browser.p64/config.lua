@@ -21,6 +21,7 @@ COPY_BTN     = { x=W-32, y=2, w=12, h=12, sprite=5 }
 SUBMIT_BTN   = { x=W-16, y=2, w=12, h=12, sprite=1 }
 
 DEFAULT_COLORS = {
+    bg               = 1,
     text             = 6,
     h1               = 7,
     h2               = 12,

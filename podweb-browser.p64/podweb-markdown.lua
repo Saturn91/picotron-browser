@@ -12,8 +12,6 @@
 --   [h2 font=myid] heading    [p font=myid] inline    [p- font=myid] ... [-p]
 --   [link file=x.podweb font=myid] label    (code blocks always use mono font)
 
-local C = DEFAULT_COLORS
-
 local CHAR_W   = 4
 local PAD_X    = 6
 local SCROLL_W = 4
@@ -155,7 +153,7 @@ local function parse_attrs(s)
 end
 
 local function parse_podweb(src)
-  local nodes, lines, meta = {}, {}, {}
+  local nodes, lines, meta, theme = {}, {}, {}, {}
   src = string.gsub(src, "^%-%-%[%[.-%]%]", "")
   for line in string.gmatch(src .. "\n", "([^\n]*)\n") do add(lines, (string.gsub(line, "\r$", ""))) end
 
@@ -168,6 +166,17 @@ local function parse_podweb(src)
       while i <= #lines and not string.match(lines[i], "^%[%-meta%]") do
         local key, val = string.match(lines[i], "^(%w+):%s*(.+)")
         if key then meta[key] = val end
+        i += 1
+      end
+      i += 1
+
+    elseif string.match(l, "^%[theme%-%]") then
+      i += 1
+      while i <= #lines and not string.match(lines[i], "^%[%-theme%]") do
+        local key, val = string.match(lines[i], "^(%w+)=(%d+)$")
+        if key and DEFAULT_COLORS[key] ~= nil then
+          theme[key] = tonumber(val)
+        end
         i += 1
       end
       i += 1
@@ -276,7 +285,7 @@ local function parse_podweb(src)
     end
   end
 
-  return nodes, meta
+  return nodes, meta, theme
 end
 
 -- layout
@@ -560,7 +569,10 @@ end
 
 function pdw_parse(src, width, height)
   local cont_w           = width - PAD_X * 2 - SCROLL_W
-  local nodes, meta      = parse_podweb(src)
+  local nodes, meta, theme = parse_podweb(src)
+  local colors = {}
+  for k, v in pairs(DEFAULT_COLORS) do colors[k] = v end
+  for k, v in pairs(theme) do colors[k] = v end
   local items, content_h = layout_nodes(nodes, cont_w)
   local max_scroll       = max(0, content_h - height)
   local doc = {
@@ -575,6 +587,7 @@ function pdw_parse(src, width, height)
     oy             = 0,
     prev_mb        = 0,
     navigated_to   = nil,
+    colors         = colors,
   }
   return doc, max_scroll
 end
@@ -651,8 +664,10 @@ function pdw_update(doc)
 end
 
 function pdw_doc(doc, ox, oy)
+  local C = doc.colors
   doc.ox, doc.oy = ox, oy
   clip(ox, oy, doc.width, doc.height)
+  rectfill(ox, oy, ox + doc.width - 1, oy + doc.height - 1, C.bg)
 
   for _, item in ipairs(doc.items) do
     local y      = oy + item.y - doc.scroll_y
