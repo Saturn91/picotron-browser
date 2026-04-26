@@ -17,7 +17,7 @@ btn_text=1
 
 [h1 align=center] Test
 
-[p align=center] Visit the [link- user=135230 file=podnet_browser.podweb]skutter.de[-link] for more details.
+[p align=center color=1] Visit the [link- user=135230 file=podnet_browser.podweb color=0 hover_color=30]skutter.de[-link] for more details.
 
 [p- align=center]
 This is a longer flow text which should be printed centered
