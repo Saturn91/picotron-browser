@@ -1,3 +1,9 @@
+[font id=wide url=podnet://78402/fonts/lilwide.font height=10]
+
+[p- align=center font=wide color=1]
+[link- file=index.podweb]HOME[-link] / [link- file=how-to.podweb]TUTORIAL[-link] / [link- file=debug.podweb]HELP[-link] / [link- file=about.podweb color=18]ABOUT[-link] 
+[-p]
+
 [img url=podnet://48932/banner_squibble.gfx]
 
 [h1] About Podweb

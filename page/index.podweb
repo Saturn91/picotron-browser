@@ -5,8 +5,8 @@ domain: podweb.info
 [font id=minie url=podnet://78402/fonts/minie.font height=10]
 [font id=wide url=podnet://78402/fonts/lilwide.font height=10]
 
-[p- align=center font=wide]
-[link- file=how-to.podweb]TUTORIAL[-link] / [link- file=debug.podweb]HELP[-link] / [link- file=about.podweb]ABOUT[-link] 
+[p- align=center font=wide color=1]
+[link- file=index.podweb color=18]HOME[-link] / [link- file=how-to.podweb]TUTORIAL[-link] / [link- file=debug.podweb]HELP[-link] / [link- file=about.podweb]ABOUT[-link] 
 [-p]
 
 [img url=podnet://48932/banner.gfx]
@@ -54,7 +54,7 @@ one user's page to another.
 [break height=24]
 
 [h1 align=center] update history
-[p] version 1.4.7 align=center/right property and a resize=false for images
+[p] version 1.4.8 align=center/right property and a resize=false for images
 [p] version 1.4.6 BUG-FIX due to very slow cache on podnet
 [p] version 1.4.5 loading indicator and download tag
 [p] version 1.4.4 configurable as tabbed or windowed via settings
