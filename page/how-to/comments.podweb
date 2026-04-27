@@ -1,0 +1,48 @@
+[h1] Adding a comment section
+
+[p-]
+Any podweb page can have a built-in comment section. Readers can post a short
+message directly inside the browser - no extra setup needed on your end.
+[-p]
+
+[h2] How to add it
+
+[p] Place the tag anywhere in your .podweb file:
+
+[code-]
+[comments]
+[-code]
+
+[p-]
+That is all. The browser renders a scrollable comment area with an input field
+and a post button at the bottom of the block.
+[-p]
+
+[h2] How it works
+
+[p-]
+Comments are stored on podnet using the Picotron leaderboard system (scoresub).
+Each page gets its own leaderboard table named after its URL. Because scoresub
+keeps one entry per user, every reader can leave exactly one comment - posting
+again replaces the previous one.
+[-p]
+
+[h2] Requirements
+
+[p-]
+Comments only work on podnet:// pages. The reader must also be logged in to
+their Lexaloffle account inside Picotron. If either condition is not met the
+browser shows a notice instead of the input field.
+[-p]
+
+[h2] Adjusting the height
+
+[p] You can set a custom height in pixels for the comment block:
+
+[code-]
+[comments height=200]
+[-code]
+
+[p] The default height is 140 pixels.
+
+[link file=how-to.podweb] back to how-to

@@ -70,5 +70,6 @@ It can also contain an [link- file=other.podweb]inline link[-link] right inside 
 [link file=how-to/colors.podweb] colors - theming, per-element color and hover color
 [link file=how-to/tipps-and-tricks.podweb] tips and tricks - coloured nav headers and more
 [link file=how-to/change-start-page.podweb] change your start page - cli, create_process, bbs link, embedded iframe
+[link file=how-to/comments.podweb] comments - adding a comment section to your page
 
 [link file=index.podweb] Back to home
