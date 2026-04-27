@@ -4,11 +4,25 @@ include("config.lua")
 include("domains.lua")
 include("renderer.lua")
 
+local function url_decode(s)
+  s = string.gsub(s, "+", " ")
+  s = string.gsub(s, "%%(%x%x)", function(hex)
+    return string.char(tonumber(hex, 16))
+  end)
+  return s
+end
+
 function get_start_page()
-	if env().url then 	return  env().url end
-	if #env().argv == 1 then return env().argv[1] end
-  	
-  	return HOME_URL
+  if env().url then return env().url end
+  if #env().argv == 1 then return env().argv[1] end
+
+  local embed_url = stat(150)
+  if embed_url and embed_url ~= "" then
+    local page = string.match(embed_url, "[?&]page=([^&]*)")
+    if page and page ~= "" then return url_decode(page) end
+  end
+
+  return HOME_URL
 end
 
 function set_conf(option, value)
