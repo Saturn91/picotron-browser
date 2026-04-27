@@ -163,17 +163,23 @@ end
 
 local function layout_comment_entries(entries, text_w)
   _apply_font(nil)
-  local laid, cy = {}, 0
+  -- scoresub returns highest score (newest) first; collect then reverse
+  local valid = {}
   for _, e in ipairs(entries) do
     if e.extra and e.extra ~= "" then
       local ts, text = string.match(e.extra, "^([^|]+)|(.+)")
-      ts   = ts   or ""
-      text = text or e.extra
-      local wrapped = wrap_text(text, text_w)
-      local h = CMT_VPAD + max(CMT_AVAT, LINE_H + #wrapped * LINE_H) + CMT_VPAD
-      add(laid, { user=e.username, date=ts, lines=wrapped, cy=cy, h=h, icon=e.icon, score=e.score })
-      cy += h + 1
+      if ts and text then
+        add(valid, { e=e, ts=ts, text=text })
+      end
     end
+  end
+  local laid, cy = {}, 0
+  for i = #valid, 1, -1 do
+    local p       = valid[i]
+    local wrapped = wrap_text(p.text, text_w)
+    local h = CMT_VPAD + max(CMT_AVAT, LINE_H + #wrapped * LINE_H) + CMT_VPAD
+    add(laid, { user=p.e.username, date=p.ts, lines=wrapped, cy=cy, h=h, icon=p.e.icon, score=p.e.score })
+    cy += h + 1
   end
   return laid, cy
 end
