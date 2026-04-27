@@ -56,6 +56,7 @@ one user's page to another.
 [comments]
 
 [h1 align=center] update history
+[p] version 1.5.0 comment sections per page
 [p] version 1.4.9 pass parameters to cardridge to open a specific page
 [p] version 1.4.8 custom colors per page
 [p] version 1.4.7 align=center/right property and a resize=false for images
