@@ -806,14 +806,32 @@ function pdw_update(doc)
               cur_score = e.score ; break
             end
           end
-          local ts         = date("%Y-%m-%d %H:%M:%S")
-          local new_scores = scoresub(item.table_name, cur_score + 1, ts .. "|" .. text) or {}
-          item.raw_scores  = new_scores
-          item.comments, item.content_h = layout_comment_entries(new_scores, item.text_w)
-          item.max_scroll  = max(0, item.content_h - item.scroll_area_h)
+          local ts        = date("%Y-%m-%d %H:%M:%S")
+          local new_score = cur_score + 1
+          scoresub(item.table_name, new_score, ts .. "|" .. text)
+          -- optimistic patch: show comment immediately without waiting for server
+          local patched, found = {}, false
+          for _, e in ipairs(item.raw_scores) do
+            if tostring(e.user_id) == tostring(uid) then
+              local ec = {}
+              for k, v in pairs(e) do ec[k] = v end
+              ec.score = new_score
+              ec.extra = ts .. "|" .. text
+              add(patched, ec)
+              found = true
+            else
+              add(patched, e)
+            end
+          end
+          if not found then
+            add(patched, { user_id=uid, username=stat(65) or "?", icon=stat(66), score=new_score, extra=ts .. "|" .. text })
+          end
+          item.raw_scores     = patched
+          item.comments, item.content_h = layout_comment_entries(patched, item.text_w)
+          item.max_scroll     = max(0, item.content_h - item.scroll_area_h)
+          item.scroll_y       = item.max_scroll
           item.txt:set_text("")
           item.comments_ready = true
-          item.scroll_y       = item.max_scroll
           popup("comment posted!", 3)
         end
       end

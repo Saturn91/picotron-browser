@@ -1,7 +1,7 @@
 --[[pod_format="raw",created="2026-04-17 10:47:47",modified="2026-04-26 12:36:39",revision=28,xstickers={}]]
 -- Screen dimensions, layout metrics, and network configuration
 
-VERSION      = "1.4.9"
+VERSION      = "1.5.0"
 
 W, H         = 320, 180
 BAR_H        = 16
