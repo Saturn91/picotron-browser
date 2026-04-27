@@ -3,11 +3,13 @@
 local W, H      = 240, 180
 local TABLE     = "hs_test_1"
 
-local score     = 0
-local scores    = {}
-local my_entry  = nil
-local msg       = ""
-local msg_timer = 0
+local score        = 0
+local scores       = {}
+local my_entry     = nil
+local msg          = ""
+local msg_timer    = 0
+local scores_ready = false
+local poll_timer   = 0
 
 local function find_my_entry(list)
   local uid = stat(64)
@@ -20,20 +22,32 @@ end
 
 function _init()
   window { width=W, height=H, title="scoresub test" }
-  scores   = scoresub(TABLE) or {}
-  my_entry = find_my_entry(scores)
 end
 
 function _update()
+  -- poll until we get a non-empty response (scoresub is async on first call)
+  if not scores_ready then
+    poll_timer += 1
+    if poll_timer % 30 == 1 then
+      local result = scoresub(TABLE) or {}
+      if #result > 0 then
+        scores       = result
+        my_entry     = find_my_entry(scores)
+        scores_ready = true
+      end
+    end
+  end
+
   if btnp(5) then
     score += 1
   end
 
   if btnp(4) then
-    scores    = scoresub(TABLE, score, "muh") or {}
-    my_entry  = find_my_entry(scores)
-    msg       = "submitted " .. score .. "!"
-    msg_timer = 180
+    scores       = scoresub(TABLE, score, "muh") or {}
+    my_entry     = find_my_entry(scores)
+    scores_ready = true
+    msg          = "submitted " .. score .. "!"
+    msg_timer    = 180
   end
 
   if msg_timer > 0 then
@@ -50,7 +64,7 @@ function _draw()
   line(4, 12, 110, 12, 5)
   local ly = 15
   if #scores == 0 then
-    print("no scores yet", 4, ly, 5)
+    print(scores_ready and "no scores yet" or "loading...", 4, ly, 5)
   end
   for i, e in ipairs(scores) do
     if i > 8 then break end

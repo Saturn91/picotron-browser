@@ -496,8 +496,8 @@ local function layout_nodes(nodes, cont_w)
                     and current_url and string.match(current_url, "^podnet://")
       local text_w   = cont_w + PAD_X * 2 - CMT_AVAT - CMT_PAD * 3 - SCROLL_W
       local tname    = enabled and make_table_name(current_url) or nil
-      local raw      = (tname and scoresub(tname)) or {}
-      local laid, cy = layout_comment_entries(raw, text_w)
+      local raw      = {}
+      local laid, cy = {}, 0
       local scroll_area_h = node.height - CMT_HEAD_H - CMT_INPUT_H - 2
 
       local submit_flag = { requested = false }
@@ -529,8 +529,10 @@ local function layout_nodes(nodes, cont_w)
         max_scroll    = max(0, cy - scroll_area_h),
         gui           = cmt_gui,
         txt           = cmt_txt,
-        submit_flag   = submit_flag,
-        input_focused = false,
+        submit_flag     = submit_flag,
+        input_focused   = false,
+        comments_ready  = false,
+        poll_timer      = 0,
       })
       y += node.height + 4
 
@@ -776,6 +778,21 @@ function pdw_update(doc)
   for _, item in ipairs(doc.items) do
     if item.tag == "comments" and item.gui then
 
+      -- poll until scoresub returns data on first load
+      if not item.comments_ready and item.table_name then
+        item.poll_timer += 1
+        if item.poll_timer % 30 == 1 then
+          local raw = scoresub(item.table_name) or {}
+          if #raw > 0 then
+            item.raw_scores     = raw
+            item.comments, item.content_h = layout_comment_entries(raw, item.text_w)
+            item.max_scroll     = max(0, item.content_h - item.scroll_area_h)
+            item.scroll_y       = item.max_scroll
+            item.comments_ready = true
+          end
+        end
+      end
+
       -- submit (enter key or post button)
       if not item.disabled and item.submit_flag and item.submit_flag.requested then
         item.submit_flag.requested = false
@@ -795,6 +812,8 @@ function pdw_update(doc)
           item.comments, item.content_h = layout_comment_entries(new_scores, item.text_w)
           item.max_scroll  = max(0, item.content_h - item.scroll_area_h)
           item.txt:set_text("")
+          item.comments_ready = true
+          item.scroll_y       = item.max_scroll
           popup("comment posted!", 3)
         end
       end
@@ -834,6 +853,18 @@ function pdw_update(doc)
   end
 
   doc.prev_mb = mb
+end
+
+function pdw_load_comments(doc)
+  for _, item in ipairs(doc.items) do
+    if item.tag == "comments" and item.table_name then
+      local raw           = scoresub(item.table_name) or {}
+      item.raw_scores     = raw
+      item.comments, item.content_h = layout_comment_entries(raw, item.text_w)
+      item.max_scroll     = max(0, item.content_h - item.scroll_area_h)
+      item.scroll_y       = item.max_scroll
+    end
+  end
 end
 
 function pdw_doc(doc, ox, oy)
