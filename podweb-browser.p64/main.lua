@@ -1,8 +1,15 @@
---[[pod_format="raw",created="2026-04-17 09:53:00",modified="2026-04-27 14:16:23",revision=114,xstickers={}]]
+--[[pod_format="raw",created="2026-04-17 09:53:00",modified="2026-04-27 14:53:52",revision=118,xstickers={}]]
 -- Podweb Browser v0.3 - entry point, state, and lifecycle
 include("config.lua")
 include("domains.lua")
 include("renderer.lua")
+
+function get_start_page()
+	if env().url then 	return  env().url end
+	if #env().argv == 1 then return env().argv[1] end
+  	
+  	return HOME_URL
+end
 
 function set_conf(option, value)
 	conf[option] = value
@@ -266,14 +273,8 @@ function _init()
 	}
 
   include("podweb-markdown.lua")
-
-  if env().url then
-    current_url = env().url
-  elseif #env().argv == 1 then
-    current_url = env().argv[1]
-  else
-    current_url = HOME_URL
-  end
+  
+  current_url = get_start_page()
 
   document    = nil
   url_bar     = nil
