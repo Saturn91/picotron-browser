@@ -1,77 +1,35 @@
-[theme-]
-bg=7
-text=1
-h1=0
-h2=13
-h3=5
-link=12
-link_hover=13
-btn_bg=6
-btn_bg_hover=12
-btn_border=5
-btn_border_hover=13
-btn_text=1
-[-theme]
+[h1] sdhfskjh
+[h1] sdhfskjh
+[h1] sdhfskjh
+[h1] sdhfskjh
+[h1] sdhfskjh
+[h1] sdhfskjh
+[h1] sdhfskjh
+[h1] sdhfskjh
+[h1] sdhfskjh
+[h1] sdhfskjh
+[h1] sdhfskjh
+[h1] sdhfskjh
 
-[font id=yummies url=podnet://78402/fonts/minie.font height=5]
+[h1] sdhfskjh
+[h1] sdhfskjh
+[h1] sdhfskjh
+[h1] sdhfskjh
+[h1] sdhfskjh
+[h1] sdhfskjh
 
-[h1 align=center] Test
+[h1] sdhfskjh
+[h1] sdhfskjh
+[h1] sdhfskjh
+[h1] sdhfskjh
+[h1] sdhfskjh
+[h1] sdhfskjh
 
-[p align=center color=1] Visit the [link- user=135230 file=podnet_browser.podweb color=0 hover_color=30]skutter.de[-link] for more details.
+[h1] sdhfskjh
+[h1] sdhfskjh
+[h1] sdhfskjh
+[h1] sdhfskjh
+[h1] sdhfskjh
+[h1] sdhfskjh
 
-[p- align=center]
-This is a longer flow text which should be printed centered
-lets hope this is actually the case lkjsdfhlkjdfsghjklfdsghldkfsjgdhs
-sdfkjhkdsfljghldkfjshg sdlkjfghkljdsfhg lskdjfhgkjldsfhgkjlfdhglkjdfshgkjdflshglkdfjsghdsfkljhg
-skjdfhgjklhdfsg sdfklögjdslkfjghdfskljhgkdfljshgkjldfshgkljdsfhglkjdsfhg
-[-p]
-
-[link cart=#podweb_markdown_demo-1] test
-
-
-[p- align=right]
-You can also check out [link- url="https://saturn91.dev/index.podweb"]saturn91.dev[-link] or go back to [link- file=index.podweb]home[-link] anytime.
-[-p]
-
-[img url=podnet://48932/test.png resize=false align=left]
-[img url=https://saturn91.github.io/my-podwebsite/img/pokemons/001_bulbasaur.png align=right]
-
-[img url=https://saturn91.github.io/my-podwebsite/img/pokemons/001_bulbasaur.png align=left]
-[img url=https://saturn91.github.io/my-podwebsite/img/pokemons/001_bulbasaur.png]
-[img url=https://saturn91.github.io/my-podwebsite/img/pokemons/001_bulbasaur.png align=center]
-[img url=https://saturn91.github.io/my-podwebsite/img/pokemons/001_bulbasaur.png align=right]
-
-[p- font=yummies]
-You can also check out [link- url="https://saturn91.dev/index.podweb"]saturn91.dev[-link] or go back to [link- file=index.podweb]home[-link] anytime.
-and [link- url="https://saturn91.dev/index.podweb"]saturn91.dev[-link] yes yes
-[-p]
-
-[p] lalalalala [link- url="https://saturn91.dev/index.podweb"]hi[-link] jaja nono
-
-[h1] TEST
-
-[link cart=#sakura] hastag card link
-[break]
-[link cart=sakura] no hastag card link
-
-[break height=32]
-
-[h1] H1 font title
-[h2] H2 font title
-[h3] h3 title
-[p] a parahraph
-
-[p] --------------------------
-[h2 font=yummies] custom font test
-[p font=yum] this line is a fallback
-
-[webring my-url=podnet://48932/test.podweb, ring-data=podnet://48932/test.webring]
-
-[download url=https://saturn91.dev/index.podweb]
-
-[p] check this [download url=https://saturn91.dev/index.podweb] out
-[p-]
-check this [download url=https://saturn91.dev/index.podweb] out
-[-p]
-
-[p] scared of using your podnet storage there is more than you think! [link- cart=#podnet_state-0]click here[-link] to check how much is left
+[comments]

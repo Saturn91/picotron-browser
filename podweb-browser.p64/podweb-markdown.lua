@@ -16,6 +16,12 @@ local CHAR_W   = 4
 local PAD_X    = 6
 local SCROLL_W = 4
 
+local CMT_AVAT    = 16
+local CMT_PAD     = 4
+local CMT_VPAD    = 4
+local CMT_HEAD_H  = LINE_H + 6
+local CMT_INPUT_H = 16
+
 local WEBRING_BTN_W   = 44
 local WEBRING_BTN_H   = 13
 local WEBRING_BTN_GAP = 10
@@ -235,6 +241,11 @@ local function parse_podweb(src)
       add(nodes, { tag="break", height=h })
       i += 1
 
+    elseif string.match(l, "^%[comments") then
+      local h = tonumber(string.match(l, "height=(%d+)")) or 140
+      add(nodes, { tag="comments", height=h })
+      i += 1
+
     elseif string.match(l, "^%[webring ") then
       local my_url   = string.match(l, "my%-url=([^,%s%]]+)")
       local ring_url = string.match(l, "ring%-data=([^%s%]]+)")
@@ -448,6 +459,57 @@ local function layout_nodes(nodes, cont_w)
         y += LINE_H + 4
       end
 
+    elseif node.tag == "comments" then
+      local mock = {
+        { user="cornet",       date="2026-04-20", text="Great browser! Works really well on my setup. Keep it up!" },
+        { user="zep",          date="2026-04-21", text="Loving the webring feature, very creative idea :)" },
+        { user="saturn91",     date="2026-04-22", text="Thanks everyone for the kind words!" },
+        { user="pancelor",     date="2026-04-23", text="Custom fonts are a nice touch, makes each page feel unique." },
+        { user="morningtoast", date="2026-04-24", text="Just found this browser, amazing what you can do in Picotron!" },
+      }
+      local text_w = cont_w + PAD_X * 2 - CMT_AVAT - CMT_PAD * 3 - SCROLL_W
+      _apply_font(nil)
+      local laid, cy = {}, 0
+      for _, c in ipairs(mock) do
+        local wrapped = wrap_text(c.text, text_w)
+        local h = CMT_VPAD + max(CMT_AVAT, LINE_H + #wrapped * LINE_H) + CMT_VPAD
+        add(laid, { user=c.user, date=c.date, lines=wrapped, cy=cy, h=h })
+        cy += h + 1
+      end
+      local scroll_area_h = node.height - CMT_HEAD_H - CMT_INPUT_H - 2
+
+      local cmt_gui = create_gui()
+      local cmt_txt
+      cmt_txt = cmt_gui:attach_text_editor {
+        x = -500, y = -500, width = 300, height = 14,
+        key_callback = {
+          ["enter"] = function(self, k)
+            local lines = self:get_text()
+            local text  = (lines and lines[1]) or ""
+            if text ~= "" then popup("comment: " .. text, 3) end
+            self:set_text("")
+            return nil
+          end
+        }
+      }
+
+      y += 4
+      add(items, {
+        tag           = "comments",
+        comments      = laid,
+        content_h     = cy,
+        scroll_area_h = scroll_area_h,
+        y             = y,
+        h             = node.height,
+        line_h        = node.height,
+        scroll_y      = 0,
+        max_scroll    = max(0, cy - scroll_area_h),
+        gui           = cmt_gui,
+        txt           = cmt_txt,
+        input_focused = false,
+      })
+      y += node.height + 4
+
     elseif node.tag == "webring" then
       local raw = fetch(node.ring_url)
       local title, join_url, urls = "webring", nil, {}
@@ -605,10 +667,27 @@ function pdw_update(doc)
   doc.navigated_to      = nil
   doc.copied            = false
   doc.download_requested = nil
-  local _, _, mb, _, mwy = mouse()
+  local mx, my, mb, _, mwy = mouse()
 
   if mwy and mwy ~= 0 then
-    doc.scroll_y = mid(0, doc.scroll_y - mwy * 8, doc.max_scroll)
+    local scrolled = false
+    if doc.oy then
+      for _, item in ipairs(doc.items) do
+        if item.tag == "comments" then
+          local iy  = doc.oy + item.y - doc.scroll_y
+          local say = iy + CMT_HEAD_H + 1
+          if mx >= doc.ox and mx < doc.ox + doc.width
+             and my >= say and my < say + item.scroll_area_h then
+            item.scroll_y = mid(0, item.scroll_y - mwy * 8, item.max_scroll)
+            scrolled = true
+            break
+          end
+        end
+      end
+    end
+    if not scrolled then
+      doc.scroll_y = mid(0, doc.scroll_y - mwy * 8, doc.max_scroll)
+    end
   end
   if btn(2) then doc.scroll_y = max(0,              doc.scroll_y - 3) end
   if btn(3) then doc.scroll_y = min(doc.max_scroll, doc.scroll_y + 3) end
@@ -665,6 +744,46 @@ function pdw_update(doc)
           doc.navigated_to = { url=item.join_url }
           break
         end
+      end
+    end
+  end
+
+  -- comment input: gui update, focus, and submit
+  for _, item in ipairs(doc.items) do
+    if item.tag == "comments" and item.gui then
+      item.gui:update_all()
+
+      local focus_req = nil
+      if (doc.prev_mb & 1) == 1 and (mb & 1) == 0 and doc.oy then
+        local iy      = doc.oy + item.y - doc.scroll_y
+        local ipy     = iy + item.h - CMT_INPUT_H
+        local btn_w   = 24
+        local cmt_w   = doc.width - SCROLL_W - 3
+        local field_x = doc.ox + CMT_PAD
+        local field_w = cmt_w - CMT_PAD * 3 - btn_w
+        local field_y = ipy + 2
+        local field_h = CMT_INPUT_H - 5
+        local btn_x   = field_x + field_w + CMT_PAD
+        local btn_x2  = doc.ox + cmt_w - CMT_PAD - 1
+
+        if mx >= field_x and mx <= field_x + field_w and my >= field_y and my <= field_y + field_h then
+          item.input_focused = true
+          focus_req = true
+        elseif mx >= btn_x and mx <= btn_x2 and my >= field_y and my <= field_y + field_h then
+          local lines = item.txt:get_text()
+          local text  = (lines and lines[1]) or ""
+          if text ~= "" then popup("comment: " .. text, 3) end
+          item.txt:set_text("")
+          item.input_focused = false
+          focus_req = false
+        else
+          item.input_focused = false
+          focus_req = false
+        end
+      end
+
+      if focus_req ~= nil then
+        item.txt:set_keyboard_focus(focus_req)
       end
     end
   end
@@ -755,6 +874,89 @@ function pdw_doc(doc, ox, oy)
         rect    (rx, by, rx+WEBRING_BTN_W-1, by+WEBRING_BTN_H-1, nh and C.btn_border_hover or C.btn_border)
         local nw = measure("next >")
         print("next >", rx + flr((WEBRING_BTN_W - nw) / 2), by + flr((WEBRING_BTN_H - LINE_H) / 2) + 1, C.btn_text)
+
+      elseif item.tag == "comments" then
+        _apply_font(nil)
+        local bx   = ox
+        local bx2  = ox + doc.width - SCROLL_W - 3
+        local say  = y + CMT_HEAD_H + 1
+        local sah  = item.scroll_area_h
+        local ipy  = y + item.h - CMT_INPUT_H
+
+        -- header
+        line(bx, y, bx2, y, C.text)
+        print("Comments", bx + CMT_PAD, y + 2, C.text)
+        line(bx, say - 1, bx2, say - 1, C.text)
+
+        -- clip to scroll area and draw comments
+        clip(bx, say, doc.width, sah)
+        for _, c in ipairs(item.comments) do
+          local cy = say + c.cy - item.scroll_y
+          if cy + c.h > say and cy < say + sah then
+            local icy = cy + CMT_VPAD
+            rectfill(bx + CMT_PAD, icy, bx + CMT_PAD + CMT_AVAT - 1, icy + CMT_AVAT - 1, 8)
+            local tx = bx + CMT_PAD + CMT_AVAT + CMT_PAD
+            print(c.user, tx, icy, C.text)
+            local dw = print(c.date, 0, -100)
+            print(c.date, bx2 - SCROLL_W - CMT_PAD - dw, icy, 5)
+            for li, ln in ipairs(c.lines) do
+              print(ln, tx, icy + li * LINE_H, C.text)
+            end
+          end
+          local sep_y = say + c.cy + c.h - item.scroll_y
+          if sep_y >= say and sep_y < say + sah then
+            line(bx + CMT_PAD, sep_y, bx2 - SCROLL_W - CMT_PAD, sep_y, 5)
+          end
+        end
+
+        -- comment scrollbar
+        if item.max_scroll > 0 then
+          local sx      = bx2 - SCROLL_W + 1
+          local thumb_h = max(6, flr(sah * sah / (sah + item.max_scroll)))
+          local thumb_y = say + flr(item.scroll_y / item.max_scroll * (sah - thumb_h))
+          line(sx, say, sx, say + sah - 1, 1)
+          rectfill(sx, thumb_y, sx + SCROLL_W - 1, thumb_y + thumb_h - 1, 5)
+        end
+
+        -- restore doc clip
+        clip(ox, oy, doc.width, doc.height)
+
+        -- input row
+        line(bx, ipy - 1, bx2, ipy - 1, C.text)
+        local btn_w   = 24
+        local field_x = bx + CMT_PAD
+        local field_w = (bx2 - bx + 1) - CMT_PAD * 3 - btn_w
+        local field_y = ipy + 2
+        local field_h = CMT_INPUT_H - 5
+
+        -- mock field with real text + cursor
+        local border_col  = item.input_focused and 6 or 5
+        rect(field_x, field_y, field_x + field_w - 1, field_y + field_h - 1, border_col)
+        if item.txt then
+          local lines        = item.txt:get_text()
+          local content      = (lines and lines[1]) or ""
+          local cur_x        = item.txt:get_cursor()
+          local before       = string.sub(content, 1, cur_x - 1)
+          local cursor_px    = print(before, 0, -100)
+          local inner_w      = field_w - CMT_PAD * 2
+          local text_offset  = max(0, cursor_px - inner_w + 4)
+          clip(field_x + 1, field_y + 1, field_w - 2, field_h - 2)
+          print(content, field_x + CMT_PAD - text_offset, field_y + 2, C.text)
+          if item.input_focused and (popup_frame % 30) < 15 then
+            local px = field_x + CMT_PAD + cursor_px - text_offset
+            rectfill(px, field_y + 2, px + 2, field_y + field_h - 3, C.text)
+          end
+          clip(ox, oy, doc.width, doc.height)
+        end
+
+        local btn_x = field_x + field_w + CMT_PAD
+        rectfill(btn_x, field_y, btn_x + btn_w - 1, field_y + field_h - 1, 2)
+        rect    (btn_x, field_y, btn_x + btn_w - 1, field_y + field_h - 1, 5)
+        local pw = print("post", 0, -100)
+        print("post", btn_x + flr((btn_w - pw) / 2), field_y + 2, C.text)
+
+        -- bottom border
+        line(bx, y + item.h, bx2, y + item.h, C.text)
 
       elseif item.tag == "p" and item.segs then
         local sx = item.x_start or PAD_X
