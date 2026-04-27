@@ -153,6 +153,31 @@ local function wrap_spans(spans, max_w)
   return lines
 end
 
+-- comment helpers
+
+local function make_table_name(url)
+  local s = string.match(url, "^podnet://(.+)") or url
+  s = string.gsub(string.lower(s), "[^%a%d]", "_")
+  return string.sub("podweb_" .. s, 1, 40)
+end
+
+local function layout_comment_entries(entries, text_w)
+  _apply_font(nil)
+  local laid, cy = {}, 0
+  for _, e in ipairs(entries) do
+    if e.extra and e.extra ~= "" then
+      local ts, text = string.match(e.extra, "^([^|]+)|(.+)")
+      ts   = ts   or ""
+      text = text or e.extra
+      local wrapped = wrap_text(text, text_w)
+      local h = CMT_VPAD + max(CMT_AVAT, LINE_H + #wrapped * LINE_H) + CMT_VPAD
+      add(laid, { user=e.username, date=ts, lines=wrapped, cy=cy, h=h, icon=e.icon, score=e.score })
+      cy += h + 1
+    end
+  end
+  return laid, cy
+end
+
 -- parser
 
 local function parse_attrs(s)
@@ -460,34 +485,22 @@ local function layout_nodes(nodes, cont_w)
       end
 
     elseif node.tag == "comments" then
-      local mock = {
-        { user="cornet",       date="2026-04-20", text="Great browser! Works really well on my setup. Keep it up!" },
-        { user="zep",          date="2026-04-21", text="Loving the webring feature, very creative idea :)" },
-        { user="saturn91",     date="2026-04-22", text="Thanks everyone for the kind words!" },
-        { user="pancelor",     date="2026-04-23", text="Custom fonts are a nice touch, makes each page feel unique." },
-        { user="morningtoast", date="2026-04-24", text="Just found this browser, amazing what you can do in Picotron!" },
-      }
-      local text_w = cont_w + PAD_X * 2 - CMT_AVAT - CMT_PAD * 3 - SCROLL_W
-      _apply_font(nil)
-      local laid, cy = {}, 0
-      for _, c in ipairs(mock) do
-        local wrapped = wrap_text(c.text, text_w)
-        local h = CMT_VPAD + max(CMT_AVAT, LINE_H + #wrapped * LINE_H) + CMT_VPAD
-        add(laid, { user=c.user, date=c.date, lines=wrapped, cy=cy, h=h })
-        cy += h + 1
-      end
+      local uid      = stat(64)
+      local enabled  = uid and uid ~= 0
+                    and current_url and string.match(current_url, "^podnet://")
+      local text_w   = cont_w + PAD_X * 2 - CMT_AVAT - CMT_PAD * 3 - SCROLL_W
+      local tname    = enabled and make_table_name(current_url) or nil
+      local raw      = (tname and scoresub(tname)) or {}
+      local laid, cy = layout_comment_entries(raw, text_w)
       local scroll_area_h = node.height - CMT_HEAD_H - CMT_INPUT_H - 2
 
+      local submit_flag = { requested = false }
       local cmt_gui = create_gui()
-      local cmt_txt
-      cmt_txt = cmt_gui:attach_text_editor {
+      local cmt_txt = cmt_gui:attach_text_editor {
         x = -500, y = -500, width = 300, height = 14,
         key_callback = {
           ["enter"] = function(self, k)
-            local lines = self:get_text()
-            local text  = (lines and lines[1]) or ""
-            if text ~= "" then popup("comment: " .. text, 3) end
-            self:set_text("")
+            submit_flag.requested = true
             return nil
           end
         }
@@ -498,6 +511,10 @@ local function layout_nodes(nodes, cont_w)
         tag           = "comments",
         comments      = laid,
         content_h     = cy,
+        raw_scores    = raw,
+        table_name    = tname,
+        text_w        = text_w,
+        disabled      = not enabled,
         scroll_area_h = scroll_area_h,
         y             = y,
         h             = node.height,
@@ -506,6 +523,7 @@ local function layout_nodes(nodes, cont_w)
         max_scroll    = max(0, cy - scroll_area_h),
         gui           = cmt_gui,
         txt           = cmt_txt,
+        submit_flag   = submit_flag,
         input_focused = false,
       })
       y += node.height + 4
@@ -751,6 +769,30 @@ function pdw_update(doc)
   -- comment input: gui update, focus, and submit
   for _, item in ipairs(doc.items) do
     if item.tag == "comments" and item.gui then
+
+      -- submit (enter key or post button)
+      if not item.disabled and item.submit_flag and item.submit_flag.requested then
+        item.submit_flag.requested = false
+        local lines = item.txt:get_text()
+        local text  = string.match((lines and lines[1]) or "", "^%s*(.-)%s*$")
+        if text ~= "" and item.table_name then
+          local uid = stat(64)
+          local cur_score = 0
+          for _, e in ipairs(item.raw_scores) do
+            if tostring(e.user_id) == tostring(uid) then
+              cur_score = e.score ; break
+            end
+          end
+          local ts         = date("%Y-%m-%d %H:%M:%S")
+          local new_scores = scoresub(item.table_name, cur_score + 1, ts .. "|" .. text) or {}
+          item.raw_scores  = new_scores
+          item.comments, item.content_h = layout_comment_entries(new_scores, item.text_w)
+          item.max_scroll  = max(0, item.content_h - item.scroll_area_h)
+          item.txt:set_text("")
+          popup("comment posted!", 3)
+        end
+      end
+
       item.gui:update_all()
 
       local focus_req = nil
@@ -770,10 +812,7 @@ function pdw_update(doc)
           item.input_focused = true
           focus_req = true
         elseif mx >= btn_x and mx <= btn_x2 and my >= field_y and my <= field_y + field_h then
-          local lines = item.txt:get_text()
-          local text  = (lines and lines[1]) or ""
-          if text ~= "" then popup("comment: " .. text, 3) end
-          item.txt:set_text("")
+          item.submit_flag.requested = true
           item.input_focused = false
           focus_req = false
         else
@@ -888,13 +927,24 @@ function pdw_doc(doc, ox, oy)
         print("Comments", bx + CMT_PAD, y + 2, C.text)
         line(bx, say - 1, bx2, say - 1, C.text)
 
+        if item.disabled then
+          local msg = "comments are only available on podnet:// pages when logged in"
+          local mw  = print(msg, 0, -100)
+          print(msg, bx + flr(((bx2 - bx) - mw) / 2), say + flr(item.scroll_area_h / 2) - 3, 5)
+          line(bx, y + item.h, bx2, y + item.h, C.text)
+        else
+
         -- clip to scroll area and draw comments
         clip(bx, say, doc.width, sah)
         for _, c in ipairs(item.comments) do
           local cy = say + c.cy - item.scroll_y
           if cy + c.h > say and cy < say + sah then
             local icy = cy + CMT_VPAD
-            rectfill(bx + CMT_PAD, icy, bx + CMT_PAD + CMT_AVAT - 1, icy + CMT_AVAT - 1, 8)
+            if c.icon then
+              spr(c.icon, bx + CMT_PAD, icy)
+            else
+              rectfill(bx + CMT_PAD, icy, bx + CMT_PAD + CMT_AVAT - 1, icy + CMT_AVAT - 1, 8)
+            end
             local tx = bx + CMT_PAD + CMT_AVAT + CMT_PAD
             print(c.user, tx, icy, C.text)
             local dw = print(c.date, 0, -100)
@@ -957,6 +1007,7 @@ function pdw_doc(doc, ox, oy)
 
         -- bottom border
         line(bx, y + item.h, bx2, y + item.h, C.text)
+        end  -- disabled/enabled
 
       elseif item.tag == "p" and item.segs then
         local sx = item.x_start or PAD_X
