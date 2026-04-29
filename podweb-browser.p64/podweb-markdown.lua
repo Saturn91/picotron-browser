@@ -163,22 +163,31 @@ end
 
 local function layout_comment_entries(entries, text_w)
   _apply_font(nil)
-  -- scoresub returns highest score (newest) first; collect then reverse
   local valid = {}
   for _, e in ipairs(entries) do
     if e.extra and e.extra ~= "" then
-      local ts, text = string.match(e.extra, "^([^|]+)|(.+)")
-      if ts and text then
-        add(valid, { e=e, ts=ts, text=text })
+      local ts_str, text = string.match(e.extra, "^([^|]+)|(.+)")
+      if ts_str and text then
+        local ts_num = tonumber(ts_str)
+        add(valid, { e=e, ts=ts_num or 0, ts_raw=not ts_num and ts_str or nil, text=text })
       end
     end
   end
+  for i = 2, #valid do
+    local v = valid[i]
+    local j = i - 1
+    while j >= 1 and valid[j].ts > v.ts do
+      valid[j + 1] = valid[j]
+      j -= 1
+    end
+    valid[j + 1] = v
+  end
   local laid, cy = {}, 0
-  for i = #valid, 1, -1 do
-    local p       = valid[i]
-    local wrapped = wrap_text(p.text, text_w)
-    local h = CMT_VPAD + max(CMT_AVAT, LINE_H + #wrapped * LINE_H) + CMT_VPAD
-    add(laid, { user=p.e.username, date=p.ts, lines=wrapped, cy=cy, h=h, icon=p.e.icon, score=p.e.score })
+  for _, p in ipairs(valid) do
+    local wrapped    = wrap_text(p.text, text_w)
+    local h          = CMT_VPAD + max(CMT_AVAT, LINE_H + #wrapped * LINE_H) + CMT_VPAD
+    local disp_date  = p.ts_raw or date("%Y-%m-%d %H:%M:%S", p.ts)
+    add(laid, { user=p.e.username, date=disp_date, lines=wrapped, cy=cy, h=h, icon=p.e.icon, score=p.e.score })
     cy += h + 1
   end
   return laid, cy
@@ -509,7 +518,8 @@ local function layout_nodes(nodes, cont_w)
             submit_flag.requested = true
             return nil
           end
-        }
+        },
+        max_lines=1
       }
 
       y += 4
@@ -806,7 +816,7 @@ function pdw_update(doc)
               cur_score = e.score ; break
             end
           end
-          local ts        = date("%Y-%m-%d %H:%M:%S")
+          local ts        = tostring(stat(86))
           local new_score = cur_score + 1
           scoresub(item.table_name, new_score, ts .. "|" .. text)
           -- optimistic patch: show comment immediately without waiting for server

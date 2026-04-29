@@ -91,7 +91,8 @@ local function create_url_bar(display_text)
         end
         return nil
       end
-    }
+    },
+    max_lines=1
   }
   if url_bar.set_text and display_text then
     url_bar:set_text(display_text)
