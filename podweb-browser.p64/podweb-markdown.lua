@@ -212,8 +212,6 @@ local function layout_comment_entries(entries, text_w)
   end
   for _, p in ipairs(valid) do
     local disp = p.ts_raw or date("%Y-%m-%d %H:%M:%S", p.ts)
-    popup("ts=" .. tostring(p.ts), 100)
-    popup(disp, 100)
   end
   local laid, cy = {}, 0
   for _, p in ipairs(valid) do
