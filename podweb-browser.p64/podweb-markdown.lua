@@ -155,6 +155,34 @@ end
 
 -- comment helpers
 
+local function DateToUnix(d)
+  local start, _, year, month, day, hour, minute, second = d:find("(%d+)%-(%d+)%-(%d+) (%d+):(%d+):(%d+)")
+  if start then
+    local tm_year = tonum(year) - 1900
+    local month   = tonum(month)
+    local day     = tonum(day)
+    local tm_hour = tonum(hour)
+    local tm_min  = tonum(minute)
+    local tm_sec  = tonum(second)
+    local tm_yday   = -1
+    local isLeapYear = ((tonum(year) % 4 == 0) and (tonum(year) % 100 ~= 0)) or (tonum(year) % 400 == 0)
+    for m = 1, month - 1 do
+      if m == 2 then
+        tm_yday += isLeapYear and 29 or 28
+      elseif m == 4 or m == 6 or m == 9 or m == 11 then
+        tm_yday += 30
+      else
+        tm_yday += 31
+      end
+    end
+    tm_yday += day
+    return tm_sec + tm_min * 60 + tm_hour * 3600 + tm_yday * 86400 +
+      (tm_year - 70) * 31536000 + ((tm_year - 69) // 4) * 86400 -
+      ((tm_year - 1) // 100) * 86400 + ((tm_year + 299) // 400) * 86400
+  end
+  return nil
+end
+
 local function make_table_name(url)
   local s = string.match(url, "^podnet://(.+)") or url
   s = string.gsub(string.lower(s), "[^%a%d]", "_")
@@ -168,7 +196,7 @@ local function layout_comment_entries(entries, text_w)
     if e.extra and e.extra ~= "" then
       local ts_str, text = string.match(e.extra, "^([^|]+)|(.+)")
       if ts_str and text then
-        local ts_num = tonumber(ts_str)
+        local ts_num = tonumber(ts_str) or DateToUnix(ts_str)
         add(valid, { e=e, ts=ts_num or 0, ts_raw=not ts_num and ts_str or nil, text=text })
       end
     end
@@ -181,6 +209,11 @@ local function layout_comment_entries(entries, text_w)
       j -= 1
     end
     valid[j + 1] = v
+  end
+  for _, p in ipairs(valid) do
+    local disp = p.ts_raw or date("%Y-%m-%d %H:%M:%S", p.ts)
+    popup("ts=" .. tostring(p.ts), 100)
+    popup(disp, 100)
   end
   local laid, cy = {}, 0
   for _, p in ipairs(valid) do
