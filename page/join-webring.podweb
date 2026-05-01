@@ -21,7 +21,7 @@ Want your podweb page listed here?:
 [h3] 1. add the following lines to your page to show the webring on your page
 
 [code-]
-[webring my-url=<YOUR_URL>, ring-data=podnet://48932/first.webring]
+[webring ring-data=podnet://48932/first.webring]
 [-code]
 
 [h3] 2. after adding the feature - reach out to me to get added to the ring
