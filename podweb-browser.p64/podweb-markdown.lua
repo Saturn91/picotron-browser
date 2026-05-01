@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-04-17 08:26:09",modified="2026-04-22 18:28:42",revision=29,xstickers={}]]
+--[[pod_format="raw",created="2026-04-17 08:26:09",modified="2026-05-01 07:54:33",revision=33,xstickers={}]]
 -- podweb-markdown.lua
 -- API: pdw_parse(src, width, height) -> document, max_scroll
 --      pdw_update(document)          -> handles scrolling, links, copy
@@ -318,10 +318,9 @@ local function parse_podweb(src)
       i += 1
 
     elseif string.match(l, "^%[webring ") then
-      local my_url   = string.match(l, "my%-url=([^,%s%]]+)")
       local ring_url = string.match(l, "ring%-data=([^%s%]]+)")
-      if my_url and ring_url then
-        add(nodes, { tag="webring", my_url=my_url, ring_url=ring_url })
+      if ring_url then
+        add(nodes, { tag="webring", ring_url=ring_url })
       end
       i += 1
 
@@ -594,7 +593,7 @@ local function layout_nodes(nodes, cont_w)
       end
       local my_idx = nil
       for k, u in ipairs(urls) do
-        if u == node.my_url then my_idx = k ; break end
+        if u == current_url then my_idx = k ; break end
       end
       if not my_idx and #urls > 0 then
         my_idx = flr(rnd(#urls)) + 1
