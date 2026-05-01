@@ -56,6 +56,7 @@ one user's page to another.
 [comments]
 
 [h1 align=center] update history
+[p] version 1.5.2 webrings no longer require my-url property but do it automatically
 [p] version 1.5.1 comment section better sorting
 [p] version 1.5.0 comment sections per page
 [p] version 1.4.9 pass parameters to cardridge to open a specific page

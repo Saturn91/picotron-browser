@@ -42,13 +42,13 @@ podnet://135230/index.podweb
 [h2] Adding the widget to your page
 
 [p-]
-Place this tag anywhere in your .podweb file. Set my-url to the full
-podnet URL of the page the widget appears on, and ring-data to the
-location of the webring file.
+Place this tag anywhere in your .podweb. The ring-data tag will be used to check if your page is part of the ring. 
+If that is the case, your page will link to the correct next / prev page automatically. If this is not yet the case
+the buttons will redirect you to a random page of the webring.
 [-p]
 
 [code-]
-[webring my-url=podnet://YOUR_ID/your-page.podweb, ring-data=podnet://48932/first.webring]
+[webring ring-data=podnet://48932/first.webring]
 [-code]
 
 [p-]

@@ -9,13 +9,13 @@ embedded right on your page.
 [h2] Adding the widget to your page
 
 [code-]
-[webring my-url=podnet://YOUR_ID/index.podweb, ring-data=podnet://48932/first.webring]
+[webring ring-data=podnet://48932/first.webring]
 [-code]
 
 [p-]
-Set my-url to the full podnet URL of the page where the widget appears.
 Set ring-data to the URL of the webring file.
 The widget shows the ring title, a join link, and previous/next buttons.
+If your page is listed in the ring-data file linkes, the prev and next button will redirect you to the propper pages.
 [-p]
 
 [p-]
