@@ -10,16 +10,36 @@
 [p] - inline links
 [p] - webrings
 [p] - custom colors
+[p] - comments
+
+[h2] a grid element
+[p-]
+Allow elements to be horizontally next to each other. This could be used for multi column text or a sidebar or images next to text.
+[-p]
+
+[p-]
+Could look like shown bellow for a table which has 2 lines and 3 columns, where the first column is 100px wide, the 2nd 50px and the third one is just talking over all available space in x
+[-p]
+
+[code-]
+[grid- columns=100;50;auto]
+
+[p] name
+[p] date
+[p] comment
+
+[p] saturn91
+[p] 01/01/1970
+[p] Saturn91 pretends to be born
+
+[-grid]
+[-code]
 
 [h2] clickable images
 
 [p-]
 Clickable images that navigate to another page when clicked.
 [-p]
-
-[h2] Comment section
-
-[p] I would really love to support comment sections on a webpage... but I have no idea how to implement that yet... so stay tuned :D
 
 [h2] Basic scripting
 
@@ -45,6 +65,6 @@ alert-style message boxes, and small in-browser minigames.
 
 [h2] Known bugs
 
-[p] None reported yet.
+[p] - comment section does scroll behind the url search bar
 
 [link file=index.podweb] back to home
