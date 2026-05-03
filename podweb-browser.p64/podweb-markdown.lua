@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-04-17 08:26:09",modified="2026-05-01 07:54:33",revision=33,xstickers={}]]
+--[[pod_format="raw",created="2026-04-17 08:26:09",modified="2026-05-03 07:49:59",revision=45,xstickers={}]]
 -- podweb-markdown.lua
 -- API: pdw_parse(src, width, height) -> document, max_scroll
 --      pdw_update(document)          -> handles scrolling, links, copy
@@ -255,7 +255,7 @@ local function parse_podweb(src)
     elseif string.match(l, "^%[theme%-%]") then
       i += 1
       while i <= #lines and not string.match(lines[i], "^%[%-theme%]") do
-        local key, val = string.match(lines[i], "^(%w+)=(%d+)$")
+        local key, val = string.match(lines[i], "^([%w_]+)=(%d+)$")
         if key and DEFAULT_COLORS[key] ~= nil then
           theme[key] = tonumber(val)
         end
@@ -314,13 +314,25 @@ local function parse_podweb(src)
 
     elseif string.match(l, "^%[comments") then
       local h = tonumber(string.match(l, "height=(%d+)")) or 140
-      add(nodes, { tag="comments", height=h })
+      add(nodes, { tag="comments", height=h,
+        btn_bg           = tonumber(string.match(l, "btn_bg=(%d+)")),
+        btn_bg_hover     = tonumber(string.match(l, "btn_bg_hover=(%d+)")),
+        btn_border       = tonumber(string.match(l, "btn_border=(%d+)")),
+        btn_border_hover = tonumber(string.match(l, "btn_border_hover=(%d+)")),
+        btn_text         = tonumber(string.match(l, "btn_text=(%d+)")),
+      })
       i += 1
 
     elseif string.match(l, "^%[webring ") then
       local ring_url = string.match(l, "ring%-data=([^%s%]]+)")
       if ring_url then
-        add(nodes, { tag="webring", ring_url=ring_url })
+        add(nodes, { tag="webring", ring_url=ring_url,
+          btn_bg           = tonumber(string.match(l, "btn_bg=(%d+)")),
+          btn_bg_hover     = tonumber(string.match(l, "btn_bg_hover=(%d+)")),
+          btn_border       = tonumber(string.match(l, "btn_border=(%d+)")),
+          btn_border_hover = tonumber(string.match(l, "btn_border_hover=(%d+)")),
+          btn_text         = tonumber(string.match(l, "btn_text=(%d+)")),
+        })
       end
       i += 1
 
@@ -573,6 +585,11 @@ local function layout_nodes(nodes, cont_w)
         input_focused   = false,
         comments_ready  = false,
         poll_timer      = 0,
+        btn_bg           = node.btn_bg,
+        btn_bg_hover     = node.btn_bg_hover,
+        btn_border       = node.btn_border,
+        btn_border_hover = node.btn_border_hover,
+        btn_text         = node.btn_text,
       })
       y += node.height + 4
 
@@ -622,6 +639,11 @@ local function layout_nodes(nodes, cont_w)
         y             = y,
         h             = item_h,
         line_h        = item_h,
+        btn_bg           = node.btn_bg,
+        btn_bg_hover     = node.btn_bg_hover,
+        btn_border       = node.btn_border,
+        btn_border_hover = node.btn_border_hover,
+        btn_text         = node.btn_text,
       })
       y += item_h + 4
     end
@@ -999,15 +1021,15 @@ function pdw_doc(doc, ox, oy)
         local by = y + LINE_H + 4
         local lx, rx = webring_btn_x(doc, item)
         local ph = webring_btn_hovered(doc, item, "prev")
-        rectfill(lx, by, lx+WEBRING_BTN_W-1, by+WEBRING_BTN_H-1, ph and C.btn_bg_hover or C.btn_bg)
-        rect    (lx, by, lx+WEBRING_BTN_W-1, by+WEBRING_BTN_H-1, ph and C.btn_border_hover or C.btn_border)
+        rectfill(lx, by, lx+WEBRING_BTN_W-1, by+WEBRING_BTN_H-1, ph and (item.btn_bg_hover or C.btn_bg_hover) or (item.btn_bg or C.btn_bg))
+        rect    (lx, by, lx+WEBRING_BTN_W-1, by+WEBRING_BTN_H-1, ph and (item.btn_border_hover or C.btn_border_hover) or (item.btn_border or C.btn_border))
         local pw = measure("< prev")
-        print("< prev", lx + flr((WEBRING_BTN_W - pw) / 2), by + flr((WEBRING_BTN_H - LINE_H) / 2) + 1, C.btn_text)
+        print("< prev", lx + flr((WEBRING_BTN_W - pw) / 2), by + flr((WEBRING_BTN_H - LINE_H) / 2) + 1, item.btn_text or C.btn_text)
         local nh = webring_btn_hovered(doc, item, "next")
-        rectfill(rx, by, rx+WEBRING_BTN_W-1, by+WEBRING_BTN_H-1, nh and C.btn_bg_hover or C.btn_bg)
-        rect    (rx, by, rx+WEBRING_BTN_W-1, by+WEBRING_BTN_H-1, nh and C.btn_border_hover or C.btn_border)
+        rectfill(rx, by, rx+WEBRING_BTN_W-1, by+WEBRING_BTN_H-1, nh and (item.btn_bg_hover or C.btn_bg_hover) or (item.btn_bg or C.btn_bg))
+        rect    (rx, by, rx+WEBRING_BTN_W-1, by+WEBRING_BTN_H-1, nh and (item.btn_border_hover or C.btn_border_hover) or (item.btn_border or C.btn_border))
         local nw = measure("next >")
-        print("next >", rx + flr((WEBRING_BTN_W - nw) / 2), by + flr((WEBRING_BTN_H - LINE_H) / 2) + 1, C.btn_text)
+        print("next >", rx + flr((WEBRING_BTN_W - nw) / 2), by + flr((WEBRING_BTN_H - LINE_H) / 2) + 1, item.btn_text or C.btn_text)
 
       elseif item.tag == "comments" then
         _apply_font(nil)
@@ -1025,7 +1047,7 @@ function pdw_doc(doc, ox, oy)
         if item.disabled then
           local msg = "comments are only available on podnet:// pages when logged in"
           local mw  = print(msg, 0, -100)
-          print(msg, bx + flr(((bx2 - bx) - mw) / 2), say + flr(item.scroll_area_h / 2) - 3, 5)
+          print(msg, bx + flr(((bx2 - bx) - mw) / 2), say + flr(item.scroll_area_h / 2) - 3, C.text)
           line(bx, y + item.h, bx2, y + item.h, C.text)
         else
 
@@ -1043,14 +1065,14 @@ function pdw_doc(doc, ox, oy)
             local tx = bx + CMT_PAD + CMT_AVAT + CMT_PAD
             print(c.user, tx, icy, C.text)
             local dw = print(c.date, 0, -100)
-            print(c.date, bx2 - SCROLL_W - CMT_PAD - dw, icy, 5)
+            print(c.date, bx2 - SCROLL_W - CMT_PAD - dw, icy, C.text)
             for li, ln in ipairs(c.lines) do
               print(ln, tx, icy + li * LINE_H, C.text)
             end
           end
           local sep_y = say + c.cy + c.h - item.scroll_y
           if sep_y >= say and sep_y < say + sah then
-            line(bx + CMT_PAD, sep_y, bx2 - SCROLL_W - CMT_PAD, sep_y, 5)
+            line(bx + CMT_PAD, sep_y, bx2 - SCROLL_W - CMT_PAD, sep_y, C.text)
           end
         end
 
@@ -1075,7 +1097,7 @@ function pdw_doc(doc, ox, oy)
         local field_h = CMT_INPUT_H - 5
 
         -- mock field with real text + cursor
-        local border_col  = item.input_focused and 6 or 5
+        local border_col  = item.input_focused and (item.btn_border_hover or C.btn_border_hover) or (item.btn_border or C.btn_border)
         rect(field_x, field_y, field_x + field_w - 1, field_y + field_h - 1, border_col)
         if item.txt then
           local lines        = item.txt:get_text()
@@ -1095,10 +1117,12 @@ function pdw_doc(doc, ox, oy)
         end
 
         local btn_x = field_x + field_w + CMT_PAD
-        rectfill(btn_x, field_y, btn_x + btn_w - 1, field_y + field_h - 1, 2)
-        rect    (btn_x, field_y, btn_x + btn_w - 1, field_y + field_h - 1, 5)
+        local mx, my = mouse()
+        local post_hovered = mx >= btn_x and mx <= btn_x + btn_w - 1 and my >= field_y and my <= field_y + field_h - 1
+        rectfill(btn_x, field_y, btn_x + btn_w - 1, field_y + field_h - 1, post_hovered and (item.btn_bg_hover or C.btn_bg_hover) or (item.btn_bg or C.btn_bg))
+        rect    (btn_x, field_y, btn_x + btn_w - 1, field_y + field_h - 1, post_hovered and (item.btn_border_hover or C.btn_border_hover) or (item.btn_border or C.btn_border))
         local pw = print("post", 0, -100)
-        print("post", btn_x + flr((btn_w - pw) / 2), field_y + 2, C.text)
+        print("post", btn_x + flr((btn_w - pw) / 2), field_y + 2, item.btn_text or C.btn_text)
 
         -- bottom border
         line(bx, y + item.h, bx2, y + item.h, C.text)
