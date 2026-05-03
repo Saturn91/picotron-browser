@@ -36,11 +36,11 @@ h2               h2 heading
 h3               h3 heading
 link             link and download normal color
 link_hover       link and download hover color
-btn_bg           webring button background (normal)
-btn_bg_hover     webring button background (hovered)
-btn_border       webring button border (normal)
-btn_border_hover webring button border (hovered)
-btn_text         webring button label
+btn_bg           button background (normal)
+btn_bg_hover     button background (hovered)
+btn_border       button border and input field border (normal)
+btn_border_hover button border and input field border (hovered)
+btn_text         button label
 [-code]
 
 [h2] Per-element color

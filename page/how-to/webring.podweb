@@ -51,6 +51,22 @@ podnet://78402/index.podweb
 podnet://135230/index.podweb
 [-code]
 
+[h2] Customizing button colors
+
+[p-]
+The previous and next buttons use the btn_* theme colors. You can override them
+directly on the [webring] tag without touching the page theme:
+[-p]
+
+[code-]
+[webring ring-data=podnet://48932/first.webring btn_bg=2 btn_bg_hover=5 btn_border=6 btn_border_hover=7 btn_text=7]
+[-code]
+
+[p-]
+Any key you leave out falls back to the page theme, which in turn falls back to
+the browser default.
+[-p]
+
 [h2] Joining the first webring
 
 [link file=how-to-webring.podweb] how to join the first webring

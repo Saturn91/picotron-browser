@@ -45,4 +45,20 @@ browser shows a notice instead of the input field.
 
 [p] The default height is 140 pixels.
 
+[h2] Customizing button colors
+
+[p-]
+The post button and the input field border use the btn_* theme colors. You can
+override them directly on the [comments] tag without touching the page theme:
+[-p]
+
+[code-]
+[comments btn_bg=2 btn_bg_hover=5 btn_border=6 btn_border_hover=7 btn_text=7]
+[-code]
+
+[p-]
+Any key you leave out falls back to the page theme, which in turn falls back to
+the browser default. You can mix inline and theme overrides freely.
+[-p]
+
 [link file=how-to.podweb] back to how-to
