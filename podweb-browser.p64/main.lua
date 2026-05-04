@@ -373,8 +373,8 @@ end
 
 function _draw()
   cls(1)
-  draw_address_bar()
   if document then pdw_doc(document, 0, CONT_Y) end
+  draw_address_bar()
   gui:draw_all()
   draw_popups()
   if loading then draw_loading() end

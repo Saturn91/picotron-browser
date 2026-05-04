@@ -11,6 +11,7 @@
 [p] - webrings
 [p] - custom colors
 [p] - comments
+[p] - bugfix: comment section did scroll behind the url search bar
 
 [h2] a grid element
 [p-]
@@ -65,6 +66,6 @@ alert-style message boxes, and small in-browser minigames.
 
 [h2] Known bugs
 
-[p] - comment section does scroll behind the url search bar
+[p] - none
 
 [link file=index.podweb] back to home

@@ -1051,8 +1051,10 @@ function pdw_doc(doc, ox, oy)
           line(bx, y + item.h, bx2, y + item.h, C.text)
         else
 
-        -- clip to scroll area and draw comments
-        clip(bx, say, doc.width, sah)
+        -- clip to scroll area and draw comments (intersected with document viewport)
+        local cmt_cy1 = max(say, oy)
+        local cmt_cy2 = min(say + sah, oy + doc.height)
+        clip(bx, cmt_cy1, doc.width, max(0, cmt_cy2 - cmt_cy1))
         for _, c in ipairs(item.comments) do
           local cy = say + c.cy - item.scroll_y
           if cy + c.h > say and cy < say + sah then
@@ -1107,7 +1109,9 @@ function pdw_doc(doc, ox, oy)
           local cursor_px    = print(before, 0, -100)
           local inner_w      = field_w - CMT_PAD * 2
           local text_offset  = max(0, cursor_px - inner_w + 4)
-          clip(field_x + 1, field_y + 1, field_w - 2, field_h - 2)
+          local fcy1 = max(field_y + 1, oy)
+          local fcy2 = min(field_y + field_h - 1, oy + doc.height)
+          clip(field_x + 1, fcy1, field_w - 2, max(0, fcy2 - fcy1))
           print(content, field_x + CMT_PAD - text_offset, field_y + 2, C.text)
           if item.input_focused and (popup_frame % 30) < 15 then
             local px = field_x + CMT_PAD + cursor_px - text_offset
