@@ -52,7 +52,7 @@ fixed columns are measured.
 
 [-grid]
 
-[p] Three columns — one fixed, two auto:
+[p] Three columns - one fixed, two auto:
 
 [code-]
 [grid- columns=120;auto;auto]
@@ -72,7 +72,7 @@ fixed columns are measured.
 
 [-grid]
 
-[p] Rows wrap automatically — every N children start a new row:
+[p] Rows wrap automatically - every N children start a new row:
 
 [code-]
 [grid- columns=auto;auto;auto]
@@ -332,12 +332,12 @@ one cell. The row height is always the tallest cell in that row.
 [-p]
 
 [code-]
-h1  h2  h3        headings — alignment respected
-p   p-            paragraphs — inline links, align, font, color all work
-link              standalone links — align, color, hover_color all work
-img               images — align and resize respected, scaled to column width
-download          download links — same as standalone
-code  code-       code blocks — fill the column width
+h1  h2  h3        headings - alignment respected
+p   p-            paragraphs - inline links, align, font, color all work
+link              standalone links - align, color, hover_color all work
+img               images - align and resize respected, scaled to column width
+download          download links - same as standalone
+code  code-       code blocks - fill the column width
 break             vertical spacer
 [-code]
 
