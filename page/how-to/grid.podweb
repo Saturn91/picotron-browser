@@ -1,0 +1,349 @@
+[h1] Grid
+
+[p-]
+The grid tag lays elements out in horizontal columns. Children fill
+columns left to right, then wrap to the next row automatically.
+Any tag that works on a normal page works inside a grid.
+[-p]
+
+[h2] Basic usage
+
+[p] Open and close with [grid-] and [-grid]. The columns= attribute is required:
+
+[code-]
+[grid- columns=auto;auto]
+
+[p] Left column
+[p] Right column
+
+[-grid]
+[-code]
+
+[grid- columns=auto;auto]
+
+[p] Left column
+[p] Right column
+
+[-grid]
+
+[h2] columns
+
+[p-]
+Each value in columns= defines one column. Values can be a fixed pixel
+width (e.g. 100) or auto. Auto columns share whatever space is left after
+fixed columns are measured.
+[-p]
+
+[p] Two equal columns:
+
+[code-]
+[grid- columns=auto;auto]
+
+[p] Column one
+[p] Column two
+
+[-grid]
+[-code]
+
+[grid- columns=auto;auto]
+
+[p] Column one
+[p] Column two
+
+[-grid]
+
+[p] Three columns — one fixed, two auto:
+
+[code-]
+[grid- columns=120;auto;auto]
+
+[p] Fixed 120px
+[p] Auto fills rest
+[p] Auto fills rest
+
+[-grid]
+[-code]
+
+[grid- columns=120;auto;auto]
+
+[p] Fixed 120px
+[p] Auto fills rest
+[p] Auto fills rest
+
+[-grid]
+
+[p] Rows wrap automatically — every N children start a new row:
+
+[code-]
+[grid- columns=auto;auto;auto]
+
+[p] Name
+[p] Date
+[p] Score
+
+[p] saturn91
+[p] 01/01/1970
+[p] 9001
+
+[p] John Doe
+[p] 15/03/1985
+[p] 42
+
+[-grid]
+[-code]
+
+[grid- columns=auto;auto;auto]
+
+[p] Name
+[p] Date
+[p] Score
+
+[p] saturn91
+[p] 01/01/1970
+[p] 9001
+
+[p] John Doe
+[p] 15/03/1985
+[p] 42
+
+[-grid]
+
+[h2] gap
+
+[p-]
+The default column gap is 4px and the default row gap is 0px. Use gap=
+to override both at once.
+[-p]
+
+[code-]
+[grid- columns=auto;auto gap=16]
+
+[p] Wide gap between columns
+[p] and between rows too
+
+[p] Second row left
+[p] Second row right
+
+[-grid]
+[-code]
+
+[grid- columns=auto;auto gap=16]
+
+[p] Wide gap between columns
+[p] and between rows too
+
+[p] Second row left
+[p] Second row right
+
+[-grid]
+
+[p] Set gap=0 to remove all spacing:
+
+[code-]
+[grid- columns=auto;auto;auto gap=0]
+
+[p] Flush
+[p] Side
+[p] By side
+
+[-grid]
+[-code]
+
+[grid- columns=auto;auto;auto gap=0]
+
+[p] Flush
+[p] Side
+[p] By side
+
+[-grid]
+
+[h2] gapX and gapY
+
+[p-]
+Use gapX= to control only the column gap and gapY= to control only the
+row gap. Both override gap= when present.
+[-p]
+
+[code-]
+[grid- columns=auto;auto gapX=20 gapY=0]
+
+[p] Wide column gap
+[p] no row gap
+
+[p] Row two left
+[p] Row two right
+
+[-grid]
+[-code]
+
+[grid- columns=auto;auto gapX=20 gapY=0]
+
+[p] Wide column gap
+[p] no row gap
+
+[p] Row two left
+[p] Row two right
+
+[-grid]
+
+[code-]
+[grid- columns=auto;auto gapX=0 gapY=12]
+
+[p] No column gap
+[p] row gap of 12px
+
+[p] Row two left
+[p] Row two right
+
+[-grid]
+[-code]
+
+[grid- columns=auto;auto gapX=0 gapY=12]
+
+[p] No column gap
+[p] row gap of 12px
+
+[p] Row two left
+[p] Row two right
+
+[-grid]
+
+[h2] Text alignment inside columns
+
+[p] Children inside a grid accept the same align= values as everywhere else:
+
+[code-]
+[grid- columns=auto;auto;auto]
+
+[p align=left] Left
+[p align=center] Center
+[p align=right] Right
+
+[-grid]
+[-code]
+
+[grid- columns=auto;auto;auto]
+
+[p align=left] Left
+[p align=center] Center
+[p align=right] Right
+
+[-grid]
+
+[p] Headings respect alignment too:
+
+[code-]
+[grid- columns=auto;auto;auto]
+
+[h2 align=left] Left
+[h2 align=center] Center
+[h2 align=right] Right
+
+[-grid]
+[-code]
+
+[grid- columns=auto;auto;auto]
+
+[h2 align=left] Left
+[h2 align=center] Center
+[h2 align=right] Right
+
+[-grid]
+
+[h2] Links in columns
+
+[p] Grid columns are great for building nav bars. Use align=center to center each link:
+
+[code-]
+[grid- columns=auto;auto;auto;auto gapX=0]
+
+[link file=index.podweb align=center] Home
+[link file=how-to.podweb align=center] Tutorial
+[link file=about.podweb align=center] About
+[link file=roadmap.podweb align=center] Roadmap
+
+[-grid]
+[-code]
+
+[grid- columns=auto;auto;auto;auto gapX=0]
+
+[link file=index.podweb align=center] Home
+[link file=how-to.podweb align=center] Tutorial
+[link file=about.podweb align=center] About
+[link file=roadmap.podweb align=center] Roadmap
+
+[-grid]
+
+[h2] Images in columns
+
+[p] Images respect align= and scale down to fit their column:
+
+[code-]
+[grid- columns=auto;auto]
+
+[img url=podnet://48932/banner.gfx align=center]
+[img url=podnet://48932/banner_squibble.gfx align=center]
+
+[-grid]
+[-code]
+
+[grid- columns=auto;auto]
+
+[img url=podnet://48932/banner.gfx align=center]
+[img url=podnet://48932/banner_squibble.gfx align=center]
+
+[-grid]
+
+[h2] Sidebar layout
+
+[p] Combine a fixed image column with an auto text column for a sidebar:
+
+[code-]
+[grid- columns=80;auto gap=6]
+
+[img url=podnet://48932/banner.gfx align=left]
+
+[p-]
+This text sits beside the image. The image
+column is fixed at 80px and the text fills
+the remaining space automatically.
+[-p]
+
+[-grid]
+[-code]
+
+[grid- columns=80;auto gap=6]
+
+[img url=podnet://48932/banner.gfx align=left]
+
+[p-]
+This text sits beside the image. The image
+column is fixed at 80px and the text fills
+the remaining space automatically.
+[-p]
+
+[-grid]
+
+[h2] Supported tags inside grid
+
+[p-]
+All standard tags work inside a grid column. Each child element fills
+one cell. The row height is always the tallest cell in that row.
+[-p]
+
+[code-]
+h1  h2  h3        headings — alignment respected
+p   p-            paragraphs — inline links, align, font, color all work
+link              standalone links — align, color, hover_color all work
+img               images — align and resize respected, scaled to column width
+download          download links — same as standalone
+code  code-       code blocks — fill the column width
+break             vertical spacer
+[-code]
+
+[p-]
+Comments and webrings are full-width elements and are not intended
+for use inside grid columns.
+[-p]
+
+[link file=how-to.podweb] back to how-to
