@@ -293,7 +293,14 @@ local function parse_podweb(src)
         inner_src = j == 1 and p or (inner_src .. "\n" .. p)
       end
       local child_nodes = parse_podweb(inner_src)
-      add(nodes, { tag="grid", columns=cols, children=child_nodes })
+      add(nodes, {
+        tag      = "grid",
+        columns  = cols,
+        children = child_nodes,
+        gap      = tonumber(string.match(tag_part, "[^%a]gap=(%d+)") or string.match(tag_part, "^gap=(%d+)")),
+        gap_x    = tonumber(string.match(tag_part, "gapX=(%d+)")),
+        gap_y    = tonumber(string.match(tag_part, "gapY=(%d+)")),
+      })
       i += 1
 
     elseif string.match(l, "^%[[%a%d]+%-[^%]]*%]") then
@@ -677,11 +684,13 @@ local function layout_nodes(nodes, cont_w, opts)
     elseif node.tag == "grid" then
       local cols     = node.columns
       local num_cols = #cols
+      local gap_x    = node.gap_x or node.gap or GRID_GAP
+      local gap_y    = node.gap_y or node.gap or 0
       local total_fixed, auto_count = 0, 0
       for _, c in ipairs(cols) do
         if c == "auto" then auto_count += 1 else total_fixed += c end
       end
-      local available = cont_w - GRID_GAP * (num_cols - 1)
+      local available = cont_w - gap_x * (num_cols - 1)
       local auto_w    = auto_count > 0 and max(20, flr((available - total_fixed) / auto_count)) or 0
       local col_widths, col_xs = {}, {}
       local cx = pad
@@ -689,12 +698,15 @@ local function layout_nodes(nodes, cont_w, opts)
         local w = (c == "auto") and auto_w or c
         add(col_widths, w)
         add(col_xs, cx)
-        cx += w + GRID_GAP
+        cx += w + gap_x
       end
 
       y += 4
       local ci = 1
+      local first_row = true
       while ci <= #node.children do
+        if not first_row then y += gap_y end
+        first_row = false
         local row_start_y = y
         local row_max_h   = 0
         for col_idx = 1, num_cols do
