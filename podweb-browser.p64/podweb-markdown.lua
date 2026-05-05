@@ -1049,6 +1049,15 @@ function pdw_doc(doc, ox, oy)
       local eff_cw  = item.col_cont_w or doc.cont_w
       local eff_pad = item.col_pad or PAD_X
 
+      local col_clipped = item.x_off ~= nil
+      if col_clipped then
+        local cx1 = eff_ox
+        local cy1 = max(y, oy)
+        local cx2 = eff_ox + eff_cw + eff_pad * 2
+        local cy2 = min(y + item_h, oy + doc.height)
+        clip(cx1, cy1, cx2 - cx1, max(0, cy2 - cy1))
+      end
+
       if item.tag == "h1" then
         print("\^u" .. item.text, eff_ox + (item.x_start or eff_pad), y, item.color or C.h1)
 
@@ -1241,6 +1250,7 @@ function pdw_doc(doc, ox, oy)
       end
 
       _apply_font(nil)
+      if col_clipped then clip(ox, oy, doc.width, doc.height) end
     end
   end
 

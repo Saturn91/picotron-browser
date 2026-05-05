@@ -1,6 +1,6 @@
 [h1] Test grids
 
-[grid- columns=100;50;auto]
+[grid- columns=100;50;auto gap=10]
 
 [p] name
 [p] date

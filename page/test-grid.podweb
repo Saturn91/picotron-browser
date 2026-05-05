@@ -87,7 +87,7 @@ The right column holds another block of text, independent of the left. Both colu
 
 [grid- columns=80;auto]
 
-[img url=podnet://48932/404.gfx align=left resize=false]
+[img url=podnet://48932/404.gfx align=left]
 
 [p-]
 This text sits beside the image in the right column. It acts like a caption or sidebar description. The image column is fixed at 80px and the text fills the rest.
