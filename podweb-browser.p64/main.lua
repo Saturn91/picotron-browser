@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-04-17 09:53:00",modified="2026-04-27 14:53:52",revision=118,xstickers={}]]
+--[[pod_format="raw",created="2026-04-17 09:53:00",modified="2026-05-05 17:34:42",revision=119,xstickers={}]]
 -- Podweb Browser v0.3 - entry point, state, and lifecycle
 include("config.lua")
 include("domains.lua")
@@ -265,7 +265,7 @@ function _init()
 	if conf.fullscreen then
 		W = 480
 		H = 270
-		win_data = { title="Podweb Browser v" .. VERSION, tabbed=true}
+		win_data = { title="Podweb Browser v" .. VERSION, tabbed=true, icon=get_spr(6)}
 	else
 		win_data = { width=W, height=H, title="Podweb Browser v" .. VERSION}
 	end
