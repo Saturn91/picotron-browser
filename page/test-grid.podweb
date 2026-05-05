@@ -1,0 +1,125 @@
+[h1] Grid Element Test Page
+
+[p] This page tests all supported element types inside a [grid] container.
+
+[h2] Two columns - paragraphs with alignment
+
+[grid- columns=auto;auto]
+
+[p align=left] Left aligned text in column one. This wraps if long enough.
+[p align=right] Right aligned text in column two. Also wraps if needed.
+
+[-grid]
+
+[h2] Three columns - plain paragraphs (table-like)
+
+[grid- columns=100;60;auto]
+
+[p] Name
+[p] Date
+[p] Comment
+
+[p] saturn91
+[p] 01/01/1970
+[p] Saturn91 pretends to be born in this galaxy.
+
+[p] John Doe
+[p] 15/03/1985
+[p] Nothing special happened that day.
+
+[-grid]
+
+[h2] Two columns - multiline paragraphs
+
+[grid- columns=auto;auto]
+
+[p-]
+The left column can hold a longer block of text. It wraps to fit inside the column width and keeps going until the paragraph ends.
+[-p]
+
+[p-]
+The right column holds another block of text, independent of the left. Both columns share the same row height automatically.
+[-p]
+
+[-grid]
+
+[h2] Two columns - headings
+
+[grid- columns=auto;auto]
+
+[h1] Big Title
+[h2] Subtitle Here
+
+[h3] Small heading left
+[h3] Small heading right
+
+[-grid]
+
+[h2] Three columns - headings with alignment
+
+[grid- columns=auto;auto;auto]
+
+[h2 align=left] Left
+[h2 align=center] Center
+[h2 align=right] Right
+
+[-grid]
+
+[h2] Two columns - links
+
+[grid- columns=auto;auto]
+
+[link file=index.podweb] Go to home
+[link file=roadmap.podweb] View roadmap
+
+[-grid]
+
+[h2] Two columns - images
+
+[grid- columns=auto;auto]
+
+[img url=podnet://48932/404.gfx align=center]
+[img url=podnet://48932/404.gfx align=center]
+
+[-grid]
+
+[h2] Sidebar layout - image + text
+
+[grid- columns=80;auto]
+
+[img url=podnet://48932/404.gfx align=left resize=false]
+
+[p-]
+This text sits beside the image in the right column. It acts like a caption or sidebar description. The image column is fixed at 80px and the text fills the rest.
+[-p]
+
+[-grid]
+
+[h2] Two columns - code blocks
+
+[grid- columns=auto;auto]
+
+[code-]
+-- left column code
+x = 10
+y = 20
+[-code]
+
+[code-]
+-- right column code
+a = x + y
+print(a)
+[-code]
+
+[-grid]
+
+[h2] Fixed + auto column
+
+[grid- columns=120;auto]
+
+[p] Fixed 120px column with left text.
+[p align=right] Auto-width column with right-aligned text.
+
+[-grid]
+
+[link file=index.podweb] back to home

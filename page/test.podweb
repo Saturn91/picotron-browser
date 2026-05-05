@@ -1,35 +1,17 @@
-[h1] sdhfskjh
-[h1] sdhfskjh
-[h1] sdhfskjh
-[h1] sdhfskjh
-[h1] sdhfskjh
-[h1] sdhfskjh
-[h1] sdhfskjh
-[h1] sdhfskjh
-[h1] sdhfskjh
-[h1] sdhfskjh
-[h1] sdhfskjh
-[h1] sdhfskjh
+[h1] Test grids
 
-[h1] sdhfskjh
-[h1] sdhfskjh
-[h1] sdhfskjh
-[h1] sdhfskjh
-[h1] sdhfskjh
-[h1] sdhfskjh
+[grid- columns=100;50;auto]
 
-[h1] sdhfskjh
-[h1] sdhfskjh
-[h1] sdhfskjh
-[h1] sdhfskjh
-[h1] sdhfskjh
-[h1] sdhfskjh
+[p] name
+[p] date
+[p] comment
 
-[h1] sdhfskjh
-[h1] sdhfskjh
-[h1] sdhfskjh
-[h1] sdhfskjh
-[h1] sdhfskjh
-[h1] sdhfskjh
+[p] saturn91
+[p] 01/01/1970
+[p] Saturn91 pretends to be born
 
-[comments]
+[p] John Doe
+[p] 01/01/1970
+[p] Same Date? What a coincident
+
+[-grid]

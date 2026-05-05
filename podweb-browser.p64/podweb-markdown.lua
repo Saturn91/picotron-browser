@@ -26,6 +26,9 @@ local WEBRING_BTN_W   = 44
 local WEBRING_BTN_H   = 13
 local WEBRING_BTN_GAP = 10
 
+local GRID_PAD = 2
+local GRID_GAP = 4
+
 -- font system
 
 local _default_font = fetch("/system/fonts/lil.font")
@@ -272,6 +275,27 @@ local function parse_podweb(src)
       end
       i += 1
 
+    elseif string.match(l, "^%[grid%-") then
+      local tag_part = string.match(l, "^%[([^%]]+)%]")
+      local cols = {}
+      for c in string.gmatch(string.match(tag_part, "columns=([%w%;]+)") or "", "([^;]+)") do
+        add(cols, tonumber(c) or c)
+      end
+      if #cols == 0 then add(cols, "auto") end
+      local parts = {}
+      i += 1
+      while i <= #lines and lines[i] ~= "[-grid]" do
+        add(parts, lines[i])
+        i += 1
+      end
+      local inner_src = ""
+      for j, p in ipairs(parts) do
+        inner_src = j == 1 and p or (inner_src .. "\n" .. p)
+      end
+      local child_nodes = parse_podweb(inner_src)
+      add(nodes, { tag="grid", columns=cols, children=child_nodes })
+      i += 1
+
     elseif string.match(l, "^%[[%a%d]+%-[^%]]*%]") then
       local tag_part = string.match(l, "^%[([^%]]+)%]")
       local tag      = string.lower(string.match(tag_part, "^([%a%d]+)%-"))
@@ -392,10 +416,11 @@ end
 
 -- layout
 
-local function calc_x_start(align, text_w, cont_w)
-  if align == "center" then return PAD_X + flr((cont_w - text_w) / 2)
-  elseif align == "right" then return PAD_X + cont_w - text_w
-  else return PAD_X end
+local function calc_x_start(align, text_w, cont_w, pad)
+  pad = pad or PAD_X
+  if align == "center" then return pad + flr((cont_w - text_w) / 2)
+  elseif align == "right" then return pad + cont_w - text_w
+  else return pad end
 end
 
 local function extract_sprite(raw)
@@ -409,9 +434,11 @@ local function extract_sprite(raw)
   return nil
 end
 
-local function layout_nodes(nodes, cont_w)
-  _font_reg = {}
-  local items, y = {}, 4
+local function layout_nodes(nodes, cont_w, opts)
+  opts = opts or {}
+  local pad = opts.pad or PAD_X
+  if not opts.keep_fonts then _font_reg = {} end
+  local items, y = {}, (opts.start_y or 4)
 
   for idx, node in ipairs(nodes) do
 
@@ -429,7 +456,7 @@ local function layout_nodes(nodes, cont_w)
       local lh = _item_line_h(ef)
       if idx > 1 then y += 8 end
       _apply_font(ef)
-      local x_start = calc_x_start(node.align, measure(node.text), cont_w)
+      local x_start = calc_x_start(node.align, measure(node.text), cont_w, pad)
       _apply_font(nil)
       add(items, { tag="h1", text=node.text, y=y, font=ef, line_h=lh, x_start=x_start, color=node.color })
       y += lh + 4
@@ -438,7 +465,7 @@ local function layout_nodes(nodes, cont_w)
       local lh = _item_line_h(node.font)
       if idx > 1 then y += 6 end
       _apply_font(node.font)
-      local x_start = calc_x_start(node.align, measure(node.text), cont_w)
+      local x_start = calc_x_start(node.align, measure(node.text), cont_w, pad)
       _apply_font(nil)
       add(items, { tag="h2", text=node.text, y=y, font=node.font, line_h=lh, x_start=x_start, color=node.color })
       y += lh + 3
@@ -447,7 +474,7 @@ local function layout_nodes(nodes, cont_w)
       local lh = _item_line_h(node.font)
       if idx > 1 then y += 4 end
       _apply_font(node.font)
-      local x_start = calc_x_start(node.align, measure(node.text), cont_w)
+      local x_start = calc_x_start(node.align, measure(node.text), cont_w, pad)
       _apply_font(nil)
       add(items, { tag="h3", text=node.text, y=y, font=node.font, line_h=lh, x_start=x_start, color=node.color })
       y += lh + 2
@@ -459,7 +486,7 @@ local function layout_nodes(nodes, cont_w)
         for _, line_segs in ipairs(wrap_spans(node.spans, cont_w)) do
           local line_w = 0
           for _, seg in ipairs(line_segs) do line_w += measure(seg.text) end
-          local x_start = calc_x_start(node.align, line_w, cont_w)
+          local x_start = calc_x_start(node.align, line_w, cont_w, pad)
           local lregs, rx = {}, x_start
           for _, seg in ipairs(line_segs) do
             local sw = measure(seg.text)
@@ -474,7 +501,7 @@ local function layout_nodes(nodes, cont_w)
         end
       else
         for _, line in ipairs(wrap_text(node.text, cont_w)) do
-          local x_start = calc_x_start(node.align, measure(line), cont_w)
+          local x_start = calc_x_start(node.align, measure(line), cont_w, pad)
           add(items, { tag="p", text=line, y=y, font=node.font, line_h=lh, x_start=x_start, color=node.color })
           y += lh
         end
@@ -490,7 +517,7 @@ local function layout_nodes(nodes, cont_w)
       local lh     = LINE_H
       local text   = "download '" .. node.filename .. "'"
       local text_w = measure(text)
-      local x_start = calc_x_start(node.align, text_w, cont_w)
+      local x_start = calc_x_start(node.align, text_w, cont_w, pad)
       y += 2
       add(items, { tag="download", text=text, url=node.url, filename=node.filename, y=y, line_h=lh, text_w=text_w, x_start=x_start, color=node.color, hover_color=node.hover_color })
       y += lh + 2
@@ -499,7 +526,7 @@ local function layout_nodes(nodes, cont_w)
       local lh = _item_line_h(node.font)
       _apply_font(node.font)
       local text_w  = measure(node.text)
-      local x_start = calc_x_start(node.align, text_w, cont_w)
+      local x_start = calc_x_start(node.align, text_w, cont_w, pad)
       _apply_font(nil)
       y += 2
       add(items, { tag="link", text=node.text, url=node.url, user=node.user, file=node.file, cart=node.cart, y=y, font=node.font, line_h=lh, text_w=text_w, x_start=x_start, color=node.color, hover_color=node.hover_color })
@@ -646,6 +673,53 @@ local function layout_nodes(nodes, cont_w)
         btn_text         = node.btn_text,
       })
       y += item_h + 4
+
+    elseif node.tag == "grid" then
+      local cols     = node.columns
+      local num_cols = #cols
+      local total_fixed, auto_count = 0, 0
+      for _, c in ipairs(cols) do
+        if c == "auto" then auto_count += 1 else total_fixed += c end
+      end
+      local available = cont_w - GRID_GAP * (num_cols - 1)
+      local auto_w    = auto_count > 0 and max(20, flr((available - total_fixed) / auto_count)) or 0
+      local col_widths, col_xs = {}, {}
+      local cx = pad
+      for _, c in ipairs(cols) do
+        local w = (c == "auto") and auto_w or c
+        add(col_widths, w)
+        add(col_xs, cx)
+        cx += w + GRID_GAP
+      end
+
+      y += 4
+      local ci = 1
+      while ci <= #node.children do
+        local row_start_y = y
+        local row_max_h   = 0
+        for col_idx = 1, num_cols do
+          local child = node.children[ci + col_idx - 1]
+          if child then
+            local col_w      = col_widths[col_idx]
+            local col_x      = col_xs[col_idx]
+            local col_cont_w = col_w - GRID_PAD * 2
+            local sub_items, sub_h = layout_nodes({child}, col_cont_w, { pad=GRID_PAD, start_y=0, keep_fonts=true })
+            row_max_h = max(row_max_h, sub_h)
+            for _, it in ipairs(sub_items) do
+              local adj = {}
+              for k, v in pairs(it) do adj[k] = v end
+              adj.y         = row_start_y + it.y
+              adj.x_off     = col_x
+              adj.col_cont_w = col_cont_w
+              adj.col_pad   = GRID_PAD
+              add(items, adj)
+            end
+          end
+        end
+        y  = row_start_y + row_max_h
+        ci += num_cols
+      end
+      y += 4
     end
   end
 
@@ -662,7 +736,7 @@ local function link_hovered(doc, item)
   local mx, my = mouse()
   local sy = doc.oy + item.y - doc.scroll_y
   local lh = item.line_h or LINE_H
-  local lx = item.x_start or PAD_X
+  local lx = (item.x_off or 0) + (item.x_start or PAD_X)
   return mx >= doc.ox + lx
      and mx <  doc.ox + lx + (item.text_w or measure(item.text))
      and my >= sy and my < sy + lh
@@ -671,7 +745,10 @@ end
 local function copy_hovered(doc, item)
   local mx, my = mouse()
   local sy = doc.oy + item.y - doc.scroll_y
-  local lx = doc.ox + PAD_X + doc.cont_w - (item.copy_w or measure("copy"))
+  local xoff = item.x_off or 0
+  local cw   = item.col_cont_w or doc.cont_w
+  local cp   = item.col_pad or PAD_X
+  local lx   = doc.ox + xoff + cp + cw - (item.copy_w or measure("copy"))
   return mx >= lx and mx < lx + (item.copy_w or measure("copy"))
      and my >= sy + 2 and my < sy + 2 + (item.line_h or LINE_H)
 end
@@ -687,11 +764,12 @@ end
 local function inline_reg_hovered(doc, item)
   if not item.lregs or #item.lregs == 0 then return nil end
   local mx, my = mouse()
-  local sy = doc.oy + item.y - doc.scroll_y
-  local lh = item.line_h or LINE_H
+  local sy   = doc.oy + item.y - doc.scroll_y
+  local lh   = item.line_h or LINE_H
+  local xoff = item.x_off or 0
   if my < sy or my >= sy + lh then return nil end
   for _, reg in ipairs(item.lregs) do
-    if mx >= doc.ox + reg.x and mx < doc.ox + reg.x + reg.w then
+    if mx >= doc.ox + xoff + reg.x and mx < doc.ox + xoff + reg.x + reg.w then
       return reg
     end
   end
@@ -699,8 +777,11 @@ local function inline_reg_hovered(doc, item)
 end
 
 local function webring_btn_x(doc, item)
-  local gw = WEBRING_BTN_W * 2 + WEBRING_BTN_GAP
-  local lx = doc.ox + PAD_X + flr((doc.cont_w - gw) / 2)
+  local gw   = WEBRING_BTN_W * 2 + WEBRING_BTN_GAP
+  local xoff = item.x_off or 0
+  local cw   = item.col_cont_w or doc.cont_w
+  local cp   = item.col_pad or PAD_X
+  local lx   = doc.ox + xoff + cp + flr((cw - gw) / 2)
   return lx, lx + WEBRING_BTN_W + WEBRING_BTN_GAP
 end
 
@@ -717,10 +798,13 @@ end
 local function webring_join_hovered(doc, item)
   if not item.join_url then return false end
   local mx, my = mouse()
-  local sy = doc.oy + item.y - doc.scroll_y
+  local sy   = doc.oy + item.y - doc.scroll_y
   if my < sy or my >= sy + LINE_H then return false end
-  local gx = doc.ox + PAD_X + flr((doc.cont_w - item.group_w) / 2)
-  local jx = gx + item.join_offset_x
+  local xoff = item.x_off or 0
+  local cw   = item.col_cont_w or doc.cont_w
+  local cp   = item.col_pad or PAD_X
+  local gx   = doc.ox + xoff + cp + flr((cw - item.group_w) / 2)
+  local jx   = gx + item.join_offset_x
   return mx >= jx and mx < jx + item.join_w
 end
 
@@ -961,46 +1045,50 @@ function pdw_doc(doc, ox, oy)
 
       _apply_font(item.font)
 
+      local eff_ox  = ox + (item.x_off or 0)
+      local eff_cw  = item.col_cont_w or doc.cont_w
+      local eff_pad = item.col_pad or PAD_X
+
       if item.tag == "h1" then
-        print("\^u" .. item.text, ox + (item.x_start or PAD_X), y, item.color or C.h1)
+        print("\^u" .. item.text, eff_ox + (item.x_start or eff_pad), y, item.color or C.h1)
 
       elseif item.tag == "h2" then
-        print("\^u" .. item.text, ox + (item.x_start or PAD_X), y, item.color or C.h2)
+        print("\^u" .. item.text, eff_ox + (item.x_start or eff_pad), y, item.color or C.h2)
 
       elseif item.tag == "h3" then
-        print(item.text, ox + (item.x_start or PAD_X), y, item.color or C.h3)
+        print(item.text, eff_ox + (item.x_start or eff_pad), y, item.color or C.h3)
 
       elseif item.tag == "download" then
         local col = link_hovered(doc, item) and (item.hover_color or C.link_hover) or (item.color or C.link)
-        local lx  = ox + (item.x_start or PAD_X)
+        local lx  = eff_ox + (item.x_start or eff_pad)
         print(item.text, lx, y, col)
         line(lx, y+lh-1, lx + item.text_w - 1, y+lh-1, col)
 
       elseif item.tag == "link" then
         local col = link_hovered(doc, item) and (item.hover_color or C.link_hover) or (item.color or C.link)
-        local lx  = ox + (item.x_start or PAD_X)
+        local lx  = eff_ox + (item.x_start or eff_pad)
         print(item.text, lx, y, col)
         line(lx, y+lh-1, lx + item.text_w - 1, y+lh-1, col)
 
       elseif item.tag == "code" then
         _apply_font("mono")
-        rectfill(ox+PAD_X-2, y, ox+PAD_X+doc.cont_w+2, y+item.h-1, 0)
-        rect    (ox+PAD_X-2, y, ox+PAD_X+doc.cont_w+2, y+item.h-1, 5)
-        local lx = ox + PAD_X + doc.cont_w - item.copy_w
+        rectfill(eff_ox+eff_pad-2, y, eff_ox+eff_pad+eff_cw+2, y+item.h-1, 0)
+        rect    (eff_ox+eff_pad-2, y, eff_ox+eff_pad+eff_cw+2, y+item.h-1, 5)
+        local lx = eff_ox + eff_pad + eff_cw - item.copy_w
         print("copy", lx, y+3, copy_hovered(doc, item) and 7 or 5)
         for li, code_line in ipairs(item.lines) do
-          print(code_line, ox+PAD_X+2, y+3+(li-1)*lh, 11)
+          print(code_line, eff_ox+eff_pad+2, y+3+(li-1)*lh, 11)
         end
 
       elseif item.tag == "img" then
         local align = item.scaled and "center" or (item.align or "center")
         local ix
         if align == "left" then
-          ix = ox + PAD_X
+          ix = eff_ox + eff_pad
         elseif align == "right" then
-          ix = ox + PAD_X + doc.cont_w - item.w
+          ix = eff_ox + eff_pad + eff_cw - item.w
         else
-          ix = ox + flr((doc.width - item.w) / 2)
+          ix = eff_ox + flr((eff_cw + eff_pad * 2 - item.w) / 2)
         end
         if item.src_w == item.w and item.src_h == item.h then
           spr(item.sprite, ix, y)
@@ -1010,7 +1098,7 @@ function pdw_doc(doc, ox, oy)
 
       elseif item.tag == "webring" then
         _apply_font(nil)
-        local gx = ox + PAD_X + flr((doc.cont_w - item.group_w) / 2)
+        local gx = eff_ox + eff_pad + flr((eff_cw - item.group_w) / 2)
         print(item.title, gx, y, C.text)
         if item.join_url then
           local jx  = gx + item.join_offset_x
@@ -1133,7 +1221,7 @@ function pdw_doc(doc, ox, oy)
         end  -- disabled/enabled
 
       elseif item.tag == "p" and item.segs then
-        local sx = item.x_start or PAD_X
+        local sx = (item.x_off or 0) + (item.x_start or PAD_X)
         for _, seg in ipairs(item.segs) do
           local sw = measure(seg.text)
           if seg.link or seg.dl then
@@ -1149,7 +1237,7 @@ function pdw_doc(doc, ox, oy)
         end
 
       elseif item.text then
-        print(item.text, ox + (item.x_start or PAD_X), y, item.color or C.text)
+        print(item.text, eff_ox + (item.x_start or eff_pad), y, item.color or C.text)
       end
 
       _apply_font(nil)
