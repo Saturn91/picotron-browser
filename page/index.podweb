@@ -56,17 +56,55 @@ one user's page to another.
 [comments]
 
 [h1 align=center] update history
-[p] version 1.5.4 comment section gets no longer drawn on top of search bar
-[p] version 1.5.3 fixing coloring for webring and comments elements -> read how-to
-[p] version 1.5.2 webrings no longer require my-url property but do it automatically
-[p] version 1.5.1 comment section better sorting
-[p] version 1.5.0 comment sections per page
-[p] version 1.4.9 pass parameters to cardridge to open a specific page
-[p] version 1.4.8 custom colors per page
-[p] version 1.4.7 align=center/right property and a resize=false for images
-[p] version 1.4.6 BUG-FIX due to very slow cache on podnet
-[p] version 1.4.5 loading indicator and download tag
-[p] version 1.4.4 configurable as tabbed or windowed via settings
-[p] version 1.4.3 tabbed window
-[p] version 1.4.2 cart icon and copy button (use the button to get the real url)
-[p] version 1.4.1 link picotron cartridges
+[grid- columns=40;auto gapY=8]
+[p] version
+[p] comment
+[-grid]
+
+[grid- columns=40;auto]
+[p] v1.5.5
+[p] grid layouts are now possible
+
+[p] v1.5.4
+[p] comment section gets no longer drawn on top of search bar
+
+[p] v1.5.3
+[p] fixing coloring for webring and comments elements -> read how-to
+
+[p] v1.5.2
+[p] webrings no longer require my-url property but do it automatically
+
+[p] v1.5.1
+[p] comment section better sorting
+
+[p] v1.5.0
+[p] comment sections per page
+
+[p] v1.4.9
+[p] pass parameters to cardridge to open a specific page
+
+[p] v1.4.8
+[p] custom colors per page
+
+[p] v1.4.7
+[p] align=center/right property and a resize=false for images
+
+[p] v1.4.6
+[p] BUG-FIX due to very slow cache on podnet
+
+[p] v1.4.5
+[p] loading indicator and download tag
+
+[p] v1.4.4
+[p] configurable as tabbed or windowed via settings
+
+[p] v1.4.3
+[p] tabbed window
+
+[p] v1.4.2
+[p] cart icon and copy button (use the button to get the real url)
+
+[p] v1.4.1
+[p] link picotron cartridges
+
+[-grid]

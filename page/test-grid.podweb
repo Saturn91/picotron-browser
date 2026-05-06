@@ -1,0 +1,137 @@
+[font id=wide url=podnet://78402/fonts/lilwide.font height=10]
+[font id=minie url=podnet://78402/fonts/minie.font height=10]
+
+[grid- columns=auto;auto;auto;auto gapX=0]
+[link file=index.podweb align=center font=wide] HOME
+[link file=how-to.podweb align=center font=wide] TUTORIAL
+[link file=about.podweb align=center font=wide] ABOUT
+[link file=test-grid.podweb align=center font=wide color=18] SATURN91
+[-grid]
+
+[img url=podnet://48932/banner.gfx]
+
+[h1 align=center] A love letter to Podweb
+
+[p- align=center]
+Written by saturn91 - a grateful builder living inside Picotron's tiny web.
+[-p]
+
+[break height=20]
+
+[h2 align=center] The people behind it all
+
+[grid- columns=auto;auto gap=8]
+
+[h3 align=center] Zep
+[h3 align=center] saturn91
+
+[img url=podnet://48932/banner.gfx align=center]
+[img url=podnet://48932/banner.gfx align=center]
+
+[p-]
+Zep is the creator of PICO-8 and Picotron - the fantasy workstation
+this whole world lives in. Without his vision of a cozy, constrained
+creative machine, none of this would be possible. Podweb owes its
+entire existence to the infrastructure he quietly built.
+[-p]
+
+[p-]
+saturn91 is the builder of the Podweb browser - the thing you are
+reading this in right now. Starting from a simple markup parser and
+a handful of Lua, it grew into a proper little web browser running
+entirely inside a fantasy workstation. A labour of love for the
+community inside Picotron.
+[-p]
+
+[-grid]
+
+[break height=20]
+
+[h1 align=center] What is Picotron?
+
+[grid- columns=auto;auto;auto gapX=6 gapY=10]
+
+[h3 align=center] A fantasy workstation
+[h3 align=center] Built-in everything
+[h3 align=center] Podnet storage
+
+[p-]
+Picotron is not just a game console. It is a full fantasy operating
+system - complete with file management, a code editor, sprite and
+map tools, and a Lua environment. A cozy machine that fits in a
+folder on your real computer.
+[-p]
+
+[p-]
+Sprite editor, map editor, sound tools and a code editor are all
+included from day one. Everything a fantasy developer needs to make
+games, tools - and apparently a whole web browser - is already
+sitting right there waiting.
+[-p]
+
+[p-]
+Every Lexaloffle user gets cloud storage called podnet. Drop a file
+there and it is instantly reachable from anywhere inside Picotron.
+Podweb turns that humble file hosting into your own personal page
+on a tiny, cozy web.
+[-p]
+
+[-grid]
+
+[break height=20]
+
+[h1 align=center] Why I love Podweb
+
+[grid- columns=auto;auto gapX=8 gapY=12]
+
+[h3] It is small
+[h3] It is yours
+
+[p-]
+No tracking. No ads. No bloated frameworks loading for five seconds
+before showing you a paragraph. Just plain text with simple tags,
+fetched and rendered inside a fantasy workstation. The web as it
+could have been.
+[-p]
+
+[p-]
+Your podnet space is your space. Write what you like, link to who
+you want, and host it all for free with your Lexaloffle account. No
+servers to rent, no domain to buy, no deploy pipeline to untangle.
+[-p]
+
+[h3] It is connected
+[h3] It is growing
+
+[p-]
+Webrings, inline links and page navigation let you hop between
+users' pages. A real community is slowly forming inside Picotron's
+little cloud - artists, developers, and people who just want a
+quiet corner of the internet.
+[-p]
+
+[p-]
+New features keep arriving - images, downloads, comment sections,
+webrings, custom fonts, colour themes, and now grid layouts. The
+web inside the fantasy machine keeps getting richer, one tag at
+a time. And you are already here, exploring it.
+[-p]
+
+[-grid]
+
+[break height=20]
+
+[h2 align=center] Quick links
+
+[grid- columns=auto;auto;auto gapX=4]
+
+[link file=index.podweb align=center] Podweb home
+[link file=how-to.podweb align=center] Write your own page
+[link file=other-users.podweb align=center] Other users
+
+[-grid]
+
+[break height=24]
+
+[img url=podnet://48932/banner_squibble.gfx]
+[p font=minie align=center] banner image by CornetTheory
