@@ -211,11 +211,18 @@ local function parse_podweb(src)
       if alt then alt = string.match(alt, "^%s*(.-)%s*$") end
       local align  = string.match(l, "align=(%a+)")
       local resize = string.match(l, "resize=(%a+)")
-      local vp_x, vp_y = string.match(l, "viewport=(%d+)_(%d+)")
+      local vp_str   = string.match(l, "viewport=([%d_;]+)")
       local cut_w, cut_h = string.match(l, "cut=(%d+)_(%d+)")
-      if vp_x then vp_x, vp_y = tonumber(vp_x), tonumber(vp_y) end
+      local anim_frames  = tonumber(string.match(l, "frames=(%d+)")) or 15
+      local viewports = {}
+      if vp_str then
+        for entry in string.gmatch(vp_str, "[^;]+") do
+          local x, y = string.match(entry, "(%d+)_(%d+)")
+          if x then add(viewports, { tonumber(x), tonumber(y) }) end
+        end
+      end
       if cut_w then cut_w, cut_h = tonumber(cut_w), tonumber(cut_h) end
-      if url then add(nodes, { tag="img", url=url, alt=alt or url, align=align, resize=resize, vp_x=vp_x, vp_y=vp_y, cut_w=cut_w, cut_h=cut_h }) end
+      if url then add(nodes, { tag="img", url=url, alt=alt or url, align=align, resize=resize, viewports=viewports, cut_w=cut_w, cut_h=cut_h, anim_frames=anim_frames }) end
       i += 1
 
     elseif string.match(l, "^%[break") then
@@ -415,8 +422,8 @@ local function layout_nodes(nodes, cont_w)
       local sprite = extract_sprite(raw)
       if sprite then
         local iw, ih     = sprite:width(), sprite:height()
-        local src_x      = node.vp_x or 0
-        local src_y      = node.vp_y or 0
+        local viewports  = node.viewports
+        local first      = viewports[1] or {0, 0}
         local src_w      = node.cut_w or iw
         local src_h      = node.cut_h or ih
         local no_resize  = node.resize == "false"
@@ -429,7 +436,11 @@ local function layout_nodes(nodes, cont_w)
           scaled = scale < 1
         end
         y += 4
-        add(items, { tag="img", sprite=sprite, y=y, h=dh, w=dw, src_x=src_x, src_y=src_y, src_w=src_w, src_h=src_h, align=node.align, scaled=scaled })
+        local animated = #viewports > 1
+        add(items, { tag="img", sprite=sprite, y=y, h=dh, w=dw,
+          src_x=first[1], src_y=first[2], src_w=src_w, src_h=src_h,
+          viewports=animated and viewports or nil, anim_frames=node.anim_frames,
+          align=node.align, scaled=scaled })
         y += dh + 4
       else
         add(items, { tag="p", text="image not found: " .. node.alt, y=y, line_h=LINE_H })
@@ -709,11 +720,13 @@ function pdw_doc(doc, ox, oy)
         else
           ix = ox + flr((doc.width - item.w) / 2)
         end
-        if item.src_x == 0 and item.src_y == 0 and item.src_w == item.w and item.src_h == item.h then
-          spr(item.sprite, ix, y)
-        else
-          sspr(item.sprite, item.src_x, item.src_y, item.src_w, item.src_h, ix, y, item.w, item.h)
+        local sx, sy = item.src_x, item.src_y
+        if item.viewports then
+          local fi = flr(time() * 60 / item.anim_frames) % #item.viewports + 1
+          local vp = item.viewports[fi]
+          sx, sy = vp[1], vp[2]
         end
+        sspr(item.sprite, sx, sy, item.src_w, item.src_h, ix, y, item.w, item.h)
 
       elseif item.tag == "webring" then
         _apply_font(nil)
