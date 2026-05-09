@@ -211,7 +211,11 @@ local function parse_podweb(src)
       if alt then alt = string.match(alt, "^%s*(.-)%s*$") end
       local align  = string.match(l, "align=(%a+)")
       local resize = string.match(l, "resize=(%a+)")
-      if url then add(nodes, { tag="img", url=url, alt=alt or url, align=align, resize=resize }) end
+      local vp_x, vp_y = string.match(l, "viewport=(%d+)_(%d+)")
+      local cut_w, cut_h = string.match(l, "cut=(%d+)_(%d+)")
+      if vp_x then vp_x, vp_y = tonumber(vp_x), tonumber(vp_y) end
+      if cut_w then cut_w, cut_h = tonumber(cut_w), tonumber(cut_h) end
+      if url then add(nodes, { tag="img", url=url, alt=alt or url, align=align, resize=resize, vp_x=vp_x, vp_y=vp_y, cut_w=cut_w, cut_h=cut_h }) end
       i += 1
 
     elseif string.match(l, "^%[break") then
@@ -411,17 +415,21 @@ local function layout_nodes(nodes, cont_w)
       local sprite = extract_sprite(raw)
       if sprite then
         local iw, ih     = sprite:width(), sprite:height()
+        local src_x      = node.vp_x or 0
+        local src_y      = node.vp_y or 0
+        local src_w      = node.cut_w or iw
+        local src_h      = node.cut_h or ih
         local no_resize  = node.resize == "false"
         local dw, dh, scaled
         if no_resize then
-          dw, dh, scaled = iw, ih, false
+          dw, dh, scaled = src_w, src_h, false
         else
-          local scale = min(1, cont_w / iw)
-          dw, dh = flr(iw * scale), flr(ih * scale)
+          local scale = min(1, cont_w / src_w)
+          dw, dh = flr(src_w * scale), flr(src_h * scale)
           scaled = scale < 1
         end
         y += 4
-        add(items, { tag="img", sprite=sprite, y=y, h=dh, w=dw, src_w=iw, src_h=ih, align=node.align, scaled=scaled })
+        add(items, { tag="img", sprite=sprite, y=y, h=dh, w=dw, src_x=src_x, src_y=src_y, src_w=src_w, src_h=src_h, align=node.align, scaled=scaled })
         y += dh + 4
       else
         add(items, { tag="p", text="image not found: " .. node.alt, y=y, line_h=LINE_H })
@@ -701,10 +709,10 @@ function pdw_doc(doc, ox, oy)
         else
           ix = ox + flr((doc.width - item.w) / 2)
         end
-        if item.src_w == item.w and item.src_h == item.h then
+        if item.src_x == 0 and item.src_y == 0 and item.src_w == item.w and item.src_h == item.h then
           spr(item.sprite, ix, y)
         else
-          sspr(item.sprite, 0, 0, item.src_w, item.src_h, ix, y, item.w, item.h)
+          sspr(item.sprite, item.src_x, item.src_y, item.src_w, item.src_h, ix, y, item.w, item.h)
         end
 
       elseif item.tag == "webring" then

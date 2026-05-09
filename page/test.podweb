@@ -1,5 +1,7 @@
 [h1] Test grids
 
+[img url=podnet://48932/404.gfx viewport=57_7 cut=22_22]
+
 [grid- columns=100;60;auto gapX=4 gap=5]
 
 [p] name

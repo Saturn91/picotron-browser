@@ -14,36 +14,46 @@
 [p] - bugfix: comment section did scroll behind the url search bar
 [p] - grids
 
+[h2] animated images
+
+[p-]
+Allow images to have multiple image sources and a frame rate so that animations can be played.
+[-p]
+
 [h2] clickable images
 
 [p-]
 Clickable images that navigate to another page when clicked.
 [-p]
 
+[h2] Embedded Audio (autoplay on page or with a tag)
+
+[p-]
+Add a tag like "[audio src=...]" which will display a audio player
+[-p]
+
 [h2] Basic scripting
 
 [p-]
 Minimal scripting support embedded in .podweb pages. No example yet,
-but the vision includes animated GIFs, a simple console output block,
-alert-style message boxes, and small in-browser minigames.
+but the vision includes hide and show properties which can be triggered by pressing buttons, when time has elapsed or by different Logic. This will allow the implementation of tell tale games using podweb
+Lets see where this leads us.
 [-p]
 
-[h2] Feature requests
+[h2] Feature requests by users
 
 [p] - A list tag for bullet point content
 
 [p] - Make all text selectable for copy and paste
 
-[p] - Code blocks should use a monospace font
-
 [p] - A bookmark function to save favourite pages
 
 [p] - Syntax highlighting support for text editors like strawberry_src
 
-[p] - A specialised .podweb editor with error highlighting and a toolbar for inserting tags correctly
-
 [h2] Known bugs
 
 [p] - none
+
+[comments]
 
 [link file=index.podweb] back to home
