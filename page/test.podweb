@@ -1,6 +1,6 @@
 [h1] Test grids
 
-[img url=podnet://48932/animation.gfx viewport=0_0;16_0 cut=16_16 frames=30]
+[img url=podnet://48932/animation.gfx viewport=0_0;16_0 cut=16_16 frames=30 scale=4]
 
 
 [grid- columns=100;60;auto gapX=4 gap=5]
