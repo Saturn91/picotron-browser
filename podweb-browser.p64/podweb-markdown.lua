@@ -338,6 +338,7 @@ local function parse_podweb(src)
       local vp_str   = string.match(l, "viewport=([%d_;]+)")
       local cut_w, cut_h = string.match(l, "cut=(%d+)_(%d+)")
       local anim_frames  = tonumber(string.match(l, "frames=(%d+)")) or 15
+      local img_scale    = tonumber(string.match(l, "scale=([%d%.]+)")) or 1
       local viewports = {}
       if vp_str then
         for entry in string.gmatch(vp_str, "[^;]+") do
@@ -346,7 +347,7 @@ local function parse_podweb(src)
         end
       end
       if cut_w then cut_w, cut_h = tonumber(cut_w), tonumber(cut_h) end
-      if url then add(nodes, { tag="img", url=url, alt=alt or url, align=align, resize=resize, viewports=viewports, cut_w=cut_w, cut_h=cut_h, anim_frames=anim_frames }) end
+      if url then add(nodes, { tag="img", url=url, alt=alt or url, align=align, resize=resize, viewports=viewports, cut_w=cut_w, cut_h=cut_h, anim_frames=anim_frames, img_scale=img_scale }) end
       i += 1
 
     elseif string.match(l, "^%[break") then
@@ -573,13 +574,15 @@ local function layout_nodes(nodes, cont_w, opts)
         local first      = viewports[1] or {0, 0}
         local src_w      = node.cut_w or iw
         local src_h      = node.cut_h or ih
+        local desired_w  = src_w * (node.img_scale or 1)
+        local desired_h  = src_h * (node.img_scale or 1)
         local no_resize  = node.resize == "false"
         local dw, dh, scaled
         if no_resize then
-          dw, dh, scaled = src_w, src_h, false
+          dw, dh, scaled = desired_w, desired_h, false
         else
-          local scale = min(1, cont_w / src_w)
-          dw, dh = flr(src_w * scale), flr(src_h * scale)
+          local scale = min(1, cont_w / desired_w)
+          dw, dh = flr(desired_w * scale), flr(desired_h * scale)
           scaled = scale < 1
         end
         y += 4

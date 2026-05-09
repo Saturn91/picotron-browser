@@ -2,59 +2,109 @@
 
 [h2] Basic usage
 
+[p-]
+Load an image from podnet or a web URL.
+The alt= text is shown if the image fails to load.
+[-p]
+
 [code-]
-[img url=podnet://YOUR_ID/myimage.gfx]
-[img url=podnet://YOUR_ID/myimage.gfx alt=A description of the image]
-[img url=https://example.com/image.png]
+[img url=podnet://YOUR_ID/image.gfx]
+[img url=podnet://YOUR_ID/image.gfx alt=my image]
+[img url=https://example.com/img.png]
 [-code]
 
-[p] The alt= text is shown if the image fails to load.
+[img url=podnet://48932/banner.gfx]
 
 [h2] align
 
 [p] Default is center. Options: left, center, right.
 
 [code-]
-[img url=podnet://YOUR_ID/banner.gfx align=left]
-[img url=podnet://YOUR_ID/banner.gfx align=center]
-[img url=podnet://YOUR_ID/banner.gfx align=right]
+[img url=podnet://YOUR_ID/img.gfx align=left]
+[img url=podnet://YOUR_ID/img.gfx align=center]
+[img url=podnet://YOUR_ID/img.gfx align=right]
 [-code]
 
+[img url=podnet://48932/animation.gfx align=left]
+[img url=podnet://48932/animation.gfx align=center]
+[img url=podnet://48932/animation.gfx align=right]
+
 [p-]
-When resize=true (the default) and the image is being scaled down to fit,
-the align property is ignored and the image is always centered.
+When an image is scaled down to fit the content area,
+align is ignored and the image is always centered.
 [-p]
 
 [h2] resize
 
-[p] Default is true. Controls whether oversized images are scaled down to fit.
-
-[p] resize=true (default):
+[p-]
+Default is true. The image scales down to fit if wider
+than the content area. Set resize=false to draw at
+native pixel size and clip at the edges instead.
+[-p]
 
 [code-]
-[img url=podnet://YOUR_ID/big.gfx]
-[img url=podnet://YOUR_ID/big.gfx resize=true]
+[img url=podnet://YOUR_ID/img.gfx resize=false]
+[img url=podnet://YOUR_ID/img.gfx resize=false align=left]
+[img url=podnet://YOUR_ID/img.gfx resize=false align=right]
 [-code]
 
 [p-]
-If the image is wider than the browser content area it is scaled down
-to fit. align is ignored during scaling.
+With resize=false the align property controls clipping:
+center (default) - clipped equally on both sides.
+left             - left edge anchored, clipped on right.
+right            - right edge anchored, clipped on left.
 [-p]
 
-[p] resize=false:
-
-[code-]
-[img url=podnet://YOUR_ID/big.gfx resize=false]
-[img url=podnet://YOUR_ID/big.gfx resize=false align=left]
-[img url=podnet://YOUR_ID/big.gfx resize=false align=right]
-[-code]
+[h2] viewport and cut
 
 [p-]
-The image is drawn at its natural pixel size. If wider than the viewport
-it is clipped at the borders. The align property controls the anchor:
-align=center (default) - image centered, clipped equally on both sides.
-align=left - image starts at the left content edge, clipped on the right.
-align=right - right edge of image meets right content edge, clipped on the left.
+Show a rectangular region of a larger image.
+viewport=X_Y is the top-left corner on the source.
+cut=W_H is the width and height of the region.
 [-p]
 
+[code-]
+[img url=podnet://YOUR_ID/sheet.gfx viewport=0_0 cut=16_16]
+[-code]
+
+[p] Full image vs a single cropped region (scale=3 to see detail):
+
+[grid- columns=auto;auto gap=8]
+
+[p align=center] full image
+[p align=center] viewport=57_7 cut=22_22
+
+[img url=podnet://48932/404.gfx align=center]
+[img url=podnet://48932/404.gfx viewport=57_7 cut=22_22 scale=3 align=center]
+
+[-grid]
+
+[h2] scale
+
+[p-]
+scale= multiplies the display size. Useful for showing
+small sprites at a readable size. Floats like scale=1.5
+are supported. If the result exceeds the content width
+it still scales down to fit.
+[-p]
+
+[code-]
+[img url=podnet://YOUR_ID/sheet.gfx viewport=0_0 cut=16_16 scale=2]
+[-code]
+
+[p] Same 16x16 sprite at scale=1, 2, and 4:
+
+[grid- columns=auto;auto;auto gap=4]
+
+[p align=center] scale=1
+[p align=center] scale=2
+[p align=center] scale=4
+
+[img url=podnet://48932/animation.gfx viewport=0_0 cut=16_16 scale=1 align=center]
+[img url=podnet://48932/animation.gfx viewport=0_0 cut=16_16 scale=2 align=center]
+[img url=podnet://48932/animation.gfx viewport=0_0 cut=16_16 scale=4 align=center]
+
+[-grid]
+
+[link file=how-to/animation.podweb] sprite animation
 [link file=how-to.podweb] back to how-to

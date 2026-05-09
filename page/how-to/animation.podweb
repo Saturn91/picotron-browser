@@ -1,0 +1,114 @@
+[h1] Animation
+
+[p-]
+Animate images by cycling through multiple viewport
+regions on a single source image called a sprite sheet.
+[-p]
+
+[h2] Sprite sheets
+
+[p-]
+A sprite sheet packs multiple frames side by side in
+one image file. Use viewport= and cut= to define the
+frame size and the position of each frame on the sheet.
+[-p]
+
+[grid- columns=auto;auto gap=8]
+
+[p align=center] sprite sheet
+[p align=center] individual frames
+
+[img url=podnet://48932/animation.gfx align=center]
+[img url=podnet://48932/animation.gfx viewport=0_0 cut=16_16 scale=3 align=center]
+
+[-grid]
+
+[h2] Multiple viewports
+
+[p-]
+List frame positions in viewport= separated by
+semicolons. Each entry is an X_Y position on the
+source. cut=W_H defines the frame size, shared
+by all frames.
+[-p]
+
+[code-]
+[img url=podnet://YOUR_ID/sheet.gfx viewport=0_0;16_0 cut=16_16]
+[-code]
+
+[p] Live example - two frames cycling:
+
+[img url=podnet://48932/animation.gfx viewport=0_0;16_0 cut=16_16 scale=4 align=center]
+
+[h2] frames
+
+[p-]
+frames= controls how many game ticks each frame is
+shown. The game runs at 60 ticks per second.
+Default is 15 (4 fps).
+[-p]
+
+[code-]
+[img url=podnet://YOUR_ID/s.gfx viewport=0_0;16_0 cut=16_16 frames=15]
+[-code]
+
+[p] slow (frames=30) vs fast (frames=5):
+
+[grid- columns=auto;auto gap=8]
+
+[p align=center] frames=30
+[p align=center] frames=5
+
+[img url=podnet://48932/animation.gfx viewport=0_0;16_0 cut=16_16 scale=4 frames=30 align=center]
+[img url=podnet://48932/animation.gfx viewport=0_0;16_0 cut=16_16 scale=4 frames=5 align=center]
+
+[-grid]
+
+[h2] Combining with scale
+
+[p-]
+Use scale= to display small sprites at a larger size.
+The frame size from cut= is scaled up before display.
+[-p]
+
+[code-]
+[img url=podnet://YOUR_ID/s.gfx viewport=0_0;16_0 cut=16_16 scale=3 frames=10]
+[-code]
+
+[p] Same animation at scale=1, 2, and 3:
+
+[grid- columns=auto;auto;auto gap=4]
+
+[p align=center] scale=1
+[p align=center] scale=2
+[p align=center] scale=3
+
+[img url=podnet://48932/animation.gfx viewport=0_0;16_0 cut=16_16 scale=1 frames=15 align=center]
+[img url=podnet://48932/animation.gfx viewport=0_0;16_0 cut=16_16 scale=2 frames=15 align=center]
+[img url=podnet://48932/animation.gfx viewport=0_0;16_0 cut=16_16 scale=3 frames=15 align=center]
+
+[-grid]
+
+[h2] Tips
+
+[p-]
+All animated images with the same frames= value stay
+in sync - they advance on the same game tick.
+[-p]
+
+[p-]
+A single viewport with no semicolons is always static.
+viewport= and cut= work without animation too.
+[-p]
+
+[p-]
+Any number of frames is supported. Just keep adding
+X_Y entries separated by semicolons.
+[-p]
+
+[code-]
+[img url=podnet://YOUR_ID/s.gfx viewport=0_0;16_0;32_0;48_0 cut=16_16 frames=8]
+[-code]
+
+[link file=how-to/image.podweb] back to images
+[link file=how-to.podweb] back to how-to
