@@ -3,6 +3,7 @@
 include("config.lua")
 include("domains.lua")
 include("renderer.lua")
+include("utils.lua")
 
 local function url_decode(s)
   s = string.gsub(s, "+", " ")
@@ -230,16 +231,10 @@ local show_pointer_cursor = false
 
 local function draw_status_url()
   if not document or not document.hovered_url then
-    if show_pointer_cursor then
-      show_pointer_cursor = false
-      window{cursor=1}  
-    end
+    set_cursor("default")
     return  
   end
-  if not show_pointer_cursor then
-    show_pointer_cursor = true
-    window{cursor="pointer"}
-  end
+  set_cursor("pointer")
   local url = document.hovered_url
   local tw  = print(url, 0, -100)
   local bw  = tw + POPUP_PAD_X * 2

@@ -221,7 +221,7 @@ local function layout_comment_entries(entries, text_w)
     local wrapped    = wrap_text(p.text, text_w)
     local h          = CMT_VPAD + max(CMT_AVAT, LINE_H + #wrapped * LINE_H) + CMT_VPAD
     local disp_date  = p.ts_raw or date("%Y-%m-%d %H:%M:%S", p.ts)
-    add(laid, { user=p.e.username, date=disp_date, lines=wrapped, cy=cy, h=h, icon=p.e.icon, score=p.e.score })
+    add(laid, { user=p.e.username, user_id=p.e.user_id, date=disp_date, lines=wrapped, cy=cy, h=h, icon=p.e.icon, score=p.e.score })
     cy += h + 1
   end
   return laid, cy
@@ -842,6 +842,28 @@ local function webring_join_hovered(doc, item)
   return mx >= jx and mx < jx + item.join_w
 end
 
+local function comment_portrait_hovered(doc, item)
+  if item.disabled or #item.comments == 0 then return nil end
+  local mx, my = mouse()
+  local iy  = doc.oy + item.y - doc.scroll_y
+  local say = iy + CMT_HEAD_H + 1
+  local sah = item.scroll_area_h
+  if my < say or my >= say + sah then return nil end
+  local ax1 = doc.ox + CMT_PAD
+  local ax2 = ax1 + CMT_AVAT - 1
+  if mx < ax1 or mx > ax2 then return nil end
+  for _, c in ipairs(item.comments) do
+    local icy = say + c.cy - item.scroll_y + CMT_VPAD
+    if my >= icy and my < icy + CMT_AVAT then
+      if c.user_id then
+        return "podnet://" .. c.user_id .. "/index.podweb"
+      end
+      return nil
+    end
+  end
+  return nil
+end
+
 -- public API
 
 function pdw_parse(src, width, height)
@@ -910,6 +932,13 @@ function pdw_update(doc)
         doc.hovered_url = item.join_url
       end
       if doc.hovered_url then break end
+    end
+    if item.tag == "comments" then
+      local portrait_url = comment_portrait_hovered(doc, item)
+      if portrait_url then
+        doc.hovered_url = portrait_url
+        break
+      end
     end
   end
 
@@ -986,6 +1015,13 @@ function pdw_update(doc)
           break
         elseif webring_join_hovered(doc, item) then
           doc.navigated_to = { url=item.join_url }
+          break
+        end
+      end
+      if item.tag == "comments" then
+        local portrait_url = comment_portrait_hovered(doc, item)
+        if portrait_url then
+          doc.navigated_to = { url=portrait_url }
           break
         end
       end

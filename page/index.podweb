@@ -62,6 +62,9 @@ one user's page to another.
 [-grid]
 
 [grid- columns=40;auto]
+[p] v1.5.7
+[p] clickable comment portraits, will open a users index page (if they have one)
+
 [p] v1.5.6
 [p] sprite animations and image scaling
 
