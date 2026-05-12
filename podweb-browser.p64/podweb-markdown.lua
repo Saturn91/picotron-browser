@@ -873,7 +873,45 @@ function pdw_update(doc)
   doc.navigated_to      = nil
   doc.copied            = false
   doc.download_requested = nil
+  doc.hovered_url       = nil
   local mx, my, mb, _, mwy = mouse()
+
+  local cur_user = string.match(current_url, "podnet://(%d+)/")
+  local function resolve_internal(lnk)
+    if lnk.url then return lnk.url end
+    if lnk.cart then return nil end
+    local u = lnk.user or cur_user
+    if u then return "podnet://" .. u .. "/" .. (lnk.file or "index.podweb") end
+    return lnk.file
+  end
+
+  for _, item in ipairs(doc.items) do
+    if (item.tag == "link" or item.tag == "download") and link_hovered(doc, item) then
+      doc.hovered_url = resolve_internal(item)
+      break
+    end
+    if item.tag == "p" then
+      local reg = inline_reg_hovered(doc, item)
+      if reg then
+        if reg.dl then
+          doc.hovered_url = reg.dl.url
+        elseif reg.link then
+          doc.hovered_url = resolve_internal(reg.link)
+        end
+        break
+      end
+    end
+    if item.tag == "webring" then
+      if item.prev_url and webring_btn_hovered(doc, item, "prev") then
+        doc.hovered_url = item.prev_url
+      elseif item.next_url and webring_btn_hovered(doc, item, "next") then
+        doc.hovered_url = item.next_url
+      elseif webring_join_hovered(doc, item) then
+        doc.hovered_url = item.join_url
+      end
+      if doc.hovered_url then break end
+    end
+  end
 
   if mwy and mwy ~= 0 then
     local scrolled = false
