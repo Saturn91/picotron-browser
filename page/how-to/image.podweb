@@ -106,5 +106,17 @@ it still scales down to fit.
 
 [-grid]
 
+[h2] index
+
+[p-]
+A .gfx file can contain multiple sprites. index= selects which one
+to display. Defaults to 1 (the first sprite).
+[-p]
+
+[code-]
+[img url=podnet://YOUR_ID/sheet.gfx index=1]
+[img url=podnet://YOUR_ID/sheet.gfx index=2]
+[-code]
+
 [link file=how-to/animation.podweb] sprite animation
 [link file=how-to.podweb] back to how-to

@@ -356,6 +356,7 @@ local function parse_podweb(src)
       local cut_w, cut_h = string.match(l, "cut=(%d+)_(%d+)")
       local anim_frames  = tonumber(string.match(l, "frames=(%d+)")) or 15
       local img_scale    = tonumber(string.match(l, "scale=([%d%.]+)")) or 1
+      local img_index    = tonumber(string.match(l, "index=(%d+)")) or 1
       local viewports = {}
       if vp_str then
         for entry in string.gmatch(vp_str, "[^;]+") do
@@ -364,7 +365,7 @@ local function parse_podweb(src)
         end
       end
       if cut_w then cut_w, cut_h = tonumber(cut_w), tonumber(cut_h) end
-      if url then add(nodes, { tag="img", url=url, alt=alt or url, align=align, resize=resize, viewports=viewports, cut_w=cut_w, cut_h=cut_h, anim_frames=anim_frames, img_scale=img_scale }) end
+      if url then add(nodes, { tag="img", url=url, alt=alt or url, align=align, resize=resize, viewports=viewports, cut_w=cut_w, cut_h=cut_h, anim_frames=anim_frames, img_scale=img_scale, img_index=img_index }) end
       i += 1
 
     elseif string.match(l, "^%[break") then
@@ -466,14 +467,12 @@ local function calc_x_start(align, text_w, cont_w, pad)
   else return pad end
 end
 
-local function extract_sprite(raw)
-  if type(raw) == "userdata" then return raw end
-  if type(raw) ~= "table"    then return nil end
-  if raw[1] and type(raw[1]) == "table" and type(raw[1].bmp) == "userdata" then
-    return raw[1].bmp
+local function extract_sprite(raw, sprite_index)
+  if not sprite_index then sprite_index = 1 end
+  if type(raw) ~= "table" then return nil end
+  if raw[sprite_index] then
+    return raw[sprite_index].bmp
   end
-  for i = 0, 1 do if type(raw[i]) == "userdata" then return raw[i] end end
-  for _, v in pairs(raw) do if type(v) == "userdata" then return v end end
   return nil
 end
 
@@ -591,7 +590,7 @@ local function layout_nodes(nodes, cont_w, opts)
 
     elseif node.tag == "img" then
       local raw    = fetch(node.url)
-      local sprite = extract_sprite(raw)
+      local sprite = extract_sprite(raw, node.img_index)
       if sprite then
         local iw, ih     = sprite:width(), sprite:height()
         local viewports  = node.viewports
