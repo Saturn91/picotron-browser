@@ -2,9 +2,15 @@
 
 [img url=podnet://48932/animation.gfx viewport=0_0;16_0 cut=16_16 frames=30 scale=4]
 
+[grid- columns=auto;auto;auto gapX=4 gap=5]
+[p align=center] audio track 1
+[p align=center] audio track 2
+[p align=center] audio track 3
 
 [audio url=podnet://48932/test.sfx]
-
+[audio url=podnet://48932/test1.sfx pattern=1]
+[audio url=podnet://48932/test2.sfx]
+[-grid]
 [grid- columns=100;60;auto gapX=4 gap=5]
 
 [p] name

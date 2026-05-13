@@ -37,8 +37,11 @@ local AUDIO_STOP_X  = AUDIO_INNER_X + 13     -- 22 (4px wide)
 local AUDIO_PROG_X  = AUDIO_INNER_X + 20     -- 29
 local AUDIO_PROG_W  = AUDIO_W - AUDIO_PROG_X - AUDIO_R - 3  -- 62
 
-local _audio_playing   = nil   -- url of currently playing audio
-local _audio_play_time = 0
+local _audio_playing        = nil   -- url of currently playing audio
+local _audio_play_time      = 0
+local _audio_paused         = false -- true when paused mid-track
+local _audio_pause_tick     = 0     -- tick offset saved on pause
+local _audio_paused_elapsed = 0     -- time()-based elapsed saved at pause moment
 
 local GRID_PAD = 2
 local GRID_GAP = 4
@@ -394,8 +397,10 @@ local function parse_podweb(src)
       i += 1
 
     elseif string.match(l, "^%[audio") then
-      local url = string.match(l, "url=([^%s%]]+)")
-      if url then add(nodes, { tag="audio", url=url }) end
+      local url     = string.match(l, "url=([^%s%]]+)")
+      local align   = string.match(l, "align=(%a+)")
+      local pattern = tonumber(string.match(l, "pattern=(%d+)"))
+      if url then add(nodes, { tag="audio", url=url, align=align, pattern=pattern }) end
       i += 1
 
     elseif string.match(l, "^%[download ") then
@@ -723,8 +728,18 @@ local function layout_nodes(nodes, cont_w, opts)
       y += item_h + 4
 
     elseif node.tag == "audio" then
+      local align   = node.align or "center"
+      local eff_cw  = cont_w
+      local x_start
+      if align == "left" then
+        x_start = pad
+      elseif align == "right" then
+        x_start = pad + eff_cw - AUDIO_W
+      else
+        x_start = pad + flr((eff_cw - AUDIO_W) / 2)
+      end
       y += 2
-      add(items, { tag="audio", url=node.url, y=y, h=AUDIO_H, line_h=AUDIO_H, x_start=PAD_X })
+      add(items, { tag="audio", url=node.url, align=align, pattern=node.pattern or 0, y=y, h=AUDIO_H, line_h=AUDIO_H, x_start=x_start })
       y += AUDIO_H + 4
 
     elseif node.tag == "grid" then
@@ -949,10 +964,11 @@ function pdw_update(doc)
   doc.download_requested = nil
   doc.hovered_url       = nil
   local mx, my, mb, _, mwy = mouse()
-  -- auto-clear audio state when music ends naturally
-  if _audio_playing ~= nil and stat(466) == -1 then
-    _audio_playing   = nil
-    _audio_play_time = 0
+  -- auto-clear audio state when music ends naturally (not when we paused it)
+  if _audio_playing ~= nil and not _audio_paused and stat(466) == -1 then
+    _audio_playing    = nil
+    _audio_play_time  = 0
+    _audio_pause_tick = 0
   end
 
   local cur_user = string.match(current_url, "podnet://(%d+)/")
@@ -1081,38 +1097,55 @@ function pdw_update(doc)
       end
       if item.tag == "audio" then
         local is_playing = _audio_playing == item.url and stat(466) ~= -1
+        local is_paused  = _audio_playing == item.url and _audio_paused
         if audio_btn_hovered(doc, item, "play") then
           if is_playing then
+            -- pause: save tick position and elapsed time, then stop music
+            local ch = stat(467)
+            _audio_pause_tick     = (ch and ch >= 0) and stat(400 + ch, 11) or 0
+            _audio_paused_elapsed = time() - _audio_play_time
             music(-1)
-            _audio_playing   = nil
-            _audio_play_time = 0
+            _audio_paused = true
+          elseif is_paused then
+            -- resume: shift play_time so bar continues from saved position
+            _audio_play_time = time() - _audio_paused_elapsed
+            music(item.pattern, nil, nil, 0x80000, _audio_pause_tick)
+            _audio_paused = false
           else
+            -- start fresh
             music(-1)
             local data = fetch(item.url)
             if data then
               data:poke(0x80000)
-              music(0, nil, nil, 0x80000)
-              _audio_playing   = item.url
-              _audio_play_time = time()
+              music(item.pattern, nil, nil, 0x80000)
+              _audio_playing        = item.url
+              _audio_play_time      = time()
+              _audio_paused         = false
+              _audio_pause_tick     = 0
+              _audio_paused_elapsed = 0
               popup("playing: " .. item.url)
             end
           end
           break
         elseif audio_btn_hovered(doc, item, "stop") then
-          if is_playing then
-            music(-1)
-            _audio_playing   = nil
-            _audio_play_time = 0
-          end
+          music(-1)
+          _audio_playing        = nil
+          _audio_play_time      = 0
+          _audio_paused         = false
+          _audio_pause_tick     = 0
+          _audio_paused_elapsed = 0
           break
         elseif audio_btn_hovered(doc, item, "rew") then
           music(-1)
           local data = fetch(item.url)
           if data then
             data:poke(0x80000)
-            music(0, nil, nil, 0x80000)
-            _audio_playing   = item.url
-            _audio_play_time = time()
+            music(item.pattern, nil, nil, 0x80000)
+            _audio_playing        = item.url
+            _audio_play_time      = time()
+            _audio_paused         = false
+            _audio_pause_tick     = 0
+            _audio_paused_elapsed = 0
             popup("playing: " .. item.url)
           end
           break
@@ -1342,6 +1375,7 @@ function pdw_doc(doc, ox, oy)
         _apply_font(nil)
         local ix         = eff_ox + (item.x_start or eff_pad)
         local is_playing = _audio_playing == item.url and stat(466) ~= -1
+        local is_paused  = _audio_playing == item.url and _audio_paused
         -- pill background
         draw_pill(ix, y, AUDIO_W, AUDIO_H, C.text)
         -- progress bar track then fill
@@ -1355,6 +1389,11 @@ function pdw_doc(doc, ox, oy)
           if fill_w > 0 then
             rectfill(prog_x, prog_y, prog_x + fill_w - 1, prog_y + prog_h - 1, C.link)
           end
+        elseif is_paused then
+          local fill_w = flr(AUDIO_PROG_W * ((_audio_paused_elapsed % 10) / 10))
+          if fill_w > 0 then
+            rectfill(prog_x, prog_y, prog_x + fill_w - 1, prog_y + prog_h - 1, C.link)
+          end
         end
         -- buttons drawn as sub-sprites of sprite 7, white (color 7) → btn color
         local bby = y + AUDIO_BTN_Y
@@ -1365,9 +1404,9 @@ function pdw_doc(doc, ox, oy)
         -- play / pause toggle: sprite 7, play=(0,0)4×5, pause=(4,0)4×5
         pal(7, audio_btn_hovered(doc, item, "play") and C.btn_bg_hover or C.btn_bg)
         if is_playing then
-          sspr(7, 4, 0, 4, 5, ix + AUDIO_PLAY_X, bby)
+          sspr(7, 4, 0, 4, 5, ix + AUDIO_PLAY_X, bby)  -- pause icon
         else
-          sspr(7, 0, 0, 4, 5, ix + AUDIO_PLAY_X, bby)
+          sspr(7, 0, 0, 4, 5, ix + AUDIO_PLAY_X, bby)  -- play icon (also when paused)
         end
         pal()
         -- stop: sprite 7, sub-region (8,0) 4×5

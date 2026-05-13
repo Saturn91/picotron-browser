@@ -49,6 +49,8 @@ It can also contain an [link- file=other.podweb]inline link[-link] right inside 
 
 [img url=podnet://YOUR_ID/banner.gfx]
 
+[audio url=podnet://YOUR_ID/music.sfx]
+
 [download url=podnet://YOUR_ID/myfile.txt]
 
 [link cart=sakura] Launch a Picotron cartridge
@@ -63,6 +65,7 @@ It can also contain an [link- file=other.podweb]inline link[-link] right inside 
 [link file=how-to/link.podweb] link - standalone navigation links and cart links
 [link file=how-to/image.podweb] image - img with align, resize, viewport, cut and scale
 [link file=how-to/animation.podweb] animation - sprite sheet animation with multiple viewports
+[link file=how-to/audio.podweb] audio - embedded audio player for .sfx files
 [link file=how-to/download.podweb] download - file download links
 [link file=how-to/code.podweb] code - code blocks
 [link file=how-to/break.podweb] break - vertical spacing

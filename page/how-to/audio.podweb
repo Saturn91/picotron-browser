@@ -1,0 +1,45 @@
+[h1] Audio
+
+[h2] Basic usage
+
+[p-]
+Embed an audio player for a .sfx file hosted on podnet.
+The player lets visitors play, pause, stop and rewind the track
+without leaving the page. The pattern where it should start to play can be selected with 
+the pattern property. It defaults to 0.
+[-p]
+
+[code-]
+[audio url=podnet://YOUR_ID/music.sfx pattern=1]
+[-code]
+
+[audio url=podnet://48932/test.sfx]
+
+[h2] align
+
+[p] Default is center. Options: left, center, right.
+
+[code-]
+[audio url=podnet://YOUR_ID/music.sfx align=left]
+[audio url=podnet://YOUR_ID/music.sfx align=center]
+[audio url=podnet://YOUR_ID/music.sfx align=right]
+[-code]
+
+[audio url=podnet://48932/test.sfx align=left]
+[audio url=podnet://48932/test.sfx align=center]
+[audio url=podnet://48932/test.sfx align=right]
+
+[h2] Notes
+
+[p-]
+Only one track plays at a time. Pressing play on one player
+automatically stops any other audio that is currently playing.
+[-p]
+
+[p-]
+The .sfx file format is Picotron's native audio format.
+You can export one from the sound editor and upload it
+to your podnet storage with the publish tool.
+[-p]
+
+[link file=how-to.podweb] back to how-to
