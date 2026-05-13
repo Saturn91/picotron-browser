@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-04-17 09:53:00",modified="2026-05-05 17:34:42",revision=119,xstickers={}]]
+--[[pod_format="raw",created="2026-04-17 09:53:00",modified="2026-05-13 19:34:21",revision=126,xstickers={}]]
 -- Podweb Browser v0.3 - entry point, state, and lifecycle
 include("config.lua")
 include("domains.lua")
@@ -263,7 +263,6 @@ end
 -- -- lifecycle ------------------------------------------------------------------
 
 function _init()
-  
 	if fstat("/appdata/podweb-browser") == nil then
 		mkdir("/appdata/podweb-browser")
 	end

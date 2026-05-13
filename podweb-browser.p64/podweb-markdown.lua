@@ -26,6 +26,20 @@ local WEBRING_BTN_W   = 44
 local WEBRING_BTN_H   = 13
 local WEBRING_BTN_GAP = 10
 
+local AUDIO_W       = 100
+local AUDIO_H       = 13
+local AUDIO_R       = 6
+local AUDIO_BTN_Y   = 4          -- (AUDIO_H - 5) / 2
+local AUDIO_INNER_X = AUDIO_R + 3  -- 9: inner left offset
+local AUDIO_REW_X   = AUDIO_INNER_X          -- 9  (5px wide)
+local AUDIO_PLAY_X  = AUDIO_INNER_X + 7      -- 16 (4px wide)
+local AUDIO_STOP_X  = AUDIO_INNER_X + 13     -- 22 (4px wide)
+local AUDIO_PROG_X  = AUDIO_INNER_X + 20     -- 29
+local AUDIO_PROG_W  = AUDIO_W - AUDIO_PROG_X - AUDIO_R - 3  -- 62
+
+local _audio_playing   = nil   -- url of currently playing audio
+local _audio_play_time = 0
+
 local GRID_PAD = 2
 local GRID_GAP = 4
 
@@ -379,6 +393,11 @@ local function parse_podweb(src)
       end
       i += 1
 
+    elseif string.match(l, "^%[audio") then
+      local url = string.match(l, "url=([^%s%]]+)")
+      if url then add(nodes, { tag="audio", url=url }) end
+      i += 1
+
     elseif string.match(l, "^%[download ") then
       local url = string.match(l, "url=([^%s%]]+)")
       if url then
@@ -703,6 +722,11 @@ local function layout_nodes(nodes, cont_w, opts)
       })
       y += item_h + 4
 
+    elseif node.tag == "audio" then
+      y += 2
+      add(items, { tag="audio", url=node.url, y=y, h=AUDIO_H, line_h=AUDIO_H, x_start=PAD_X })
+      y += AUDIO_H + 4
+
     elseif node.tag == "grid" then
       local cols     = node.columns
       local num_cols = #cols
@@ -864,6 +888,34 @@ local function comment_portrait_hovered(doc, item)
   return nil
 end
 
+local function draw_pill(x, y, w, h, col)
+  local r = flr(h / 2)
+  circfill(x + r,         y + r, r, col)
+  circfill(x + w - 1 - r, y + r, r, col)
+  rectfill(x + r, y, x + w - 1 - r, y + h - 1, col)
+end
+
+local function audio_btn_hovered(doc, item, btn)
+  local mx, my = mouse()
+  local iy = doc.oy + item.y - doc.scroll_y
+  local ix = doc.ox + (item.x_off or 0) + (item.x_start or PAD_X)
+  local by = iy + AUDIO_BTN_Y
+  if btn == "rew" then
+    return mx >= ix + AUDIO_REW_X  and mx < ix + AUDIO_REW_X  + 5 and my >= by and my < by + 5
+  elseif btn == "play" then
+    return mx >= ix + AUDIO_PLAY_X and mx < ix + AUDIO_PLAY_X + 4 and my >= by and my < by + 5
+  elseif btn == "stop" then
+    return mx >= ix + AUDIO_STOP_X and mx < ix + AUDIO_STOP_X + 4 and my >= by and my < by + 5
+  end
+  return false
+end
+
+local function audio_any_btn_hovered(doc, item)
+  return audio_btn_hovered(doc, item, "rew")
+      or audio_btn_hovered(doc, item, "play")
+      or audio_btn_hovered(doc, item, "stop")
+end
+
 -- public API
 
 function pdw_parse(src, width, height)
@@ -897,6 +949,11 @@ function pdw_update(doc)
   doc.download_requested = nil
   doc.hovered_url       = nil
   local mx, my, mb, _, mwy = mouse()
+  -- auto-clear audio state when music ends naturally
+  if _audio_playing ~= nil and stat(466) == -1 then
+    _audio_playing   = nil
+    _audio_play_time = 0
+  end
 
   local cur_user = string.match(current_url, "podnet://(%d+)/")
   local function resolve_internal(lnk)
@@ -932,6 +989,10 @@ function pdw_update(doc)
         doc.hovered_url = item.join_url
       end
       if doc.hovered_url then break end
+    end
+    if item.tag == "audio" and audio_any_btn_hovered(doc, item) then
+      doc.hovered_url = item.url
+      break
     end
     if item.tag == "comments" then
       local portrait_url = comment_portrait_hovered(doc, item)
@@ -1015,6 +1076,45 @@ function pdw_update(doc)
           break
         elseif webring_join_hovered(doc, item) then
           doc.navigated_to = { url=item.join_url }
+          break
+        end
+      end
+      if item.tag == "audio" then
+        local is_playing = _audio_playing == item.url and stat(466) ~= -1
+        if audio_btn_hovered(doc, item, "play") then
+          if is_playing then
+            music(-1)
+            _audio_playing   = nil
+            _audio_play_time = 0
+          else
+            music(-1)
+            local data = fetch(item.url)
+            if data then
+              data:poke(0x80000)
+              music(0, nil, nil, 0x80000)
+              _audio_playing   = item.url
+              _audio_play_time = time()
+              popup("playing: " .. item.url)
+            end
+          end
+          break
+        elseif audio_btn_hovered(doc, item, "stop") then
+          if is_playing then
+            music(-1)
+            _audio_playing   = nil
+            _audio_play_time = 0
+          end
+          break
+        elseif audio_btn_hovered(doc, item, "rew") then
+          music(-1)
+          local data = fetch(item.url)
+          if data then
+            data:poke(0x80000)
+            music(0, nil, nil, 0x80000)
+            _audio_playing   = item.url
+            _audio_play_time = time()
+            popup("playing: " .. item.url)
+          end
           break
         end
       end
@@ -1237,6 +1337,43 @@ function pdw_doc(doc, ox, oy)
         rect    (rx, by, rx+WEBRING_BTN_W-1, by+WEBRING_BTN_H-1, nh and (item.btn_border_hover or C.btn_border_hover) or (item.btn_border or C.btn_border))
         local nw = measure("next >")
         print("next >", rx + flr((WEBRING_BTN_W - nw) / 2), by + flr((WEBRING_BTN_H - LINE_H) / 2) + 1, item.btn_text or C.btn_text)
+
+      elseif item.tag == "audio" then
+        _apply_font(nil)
+        local ix         = eff_ox + (item.x_start or eff_pad)
+        local is_playing = _audio_playing == item.url and stat(466) ~= -1
+        -- pill background
+        draw_pill(ix, y, AUDIO_W, AUDIO_H, C.text)
+        -- progress bar track then fill
+        local prog_x = ix + AUDIO_PROG_X
+        local prog_y = y + 5
+        local prog_h = 3
+        rectfill(prog_x, prog_y, prog_x + AUDIO_PROG_W - 1, prog_y + prog_h - 1, C.bg)
+        if is_playing then
+          local elapsed = time() - _audio_play_time
+          local fill_w  = flr(AUDIO_PROG_W * ((elapsed % 10) / 10))
+          if fill_w > 0 then
+            rectfill(prog_x, prog_y, prog_x + fill_w - 1, prog_y + prog_h - 1, C.link)
+          end
+        end
+        -- buttons drawn as sub-sprites of sprite 7, white (color 7) → btn color
+        local bby = y + AUDIO_BTN_Y
+        -- rewind: sprite 7, sub-region (0,6) 5×5
+        pal(7, audio_btn_hovered(doc, item, "rew") and C.btn_bg_hover or C.btn_bg)
+        sspr(7, 0, 6, 5, 5, ix + AUDIO_REW_X, bby)
+        pal()
+        -- play / pause toggle: sprite 7, play=(0,0)4×5, pause=(4,0)4×5
+        pal(7, audio_btn_hovered(doc, item, "play") and C.btn_bg_hover or C.btn_bg)
+        if is_playing then
+          sspr(7, 4, 0, 4, 5, ix + AUDIO_PLAY_X, bby)
+        else
+          sspr(7, 0, 0, 4, 5, ix + AUDIO_PLAY_X, bby)
+        end
+        pal()
+        -- stop: sprite 7, sub-region (8,0) 4×5
+        pal(7, audio_btn_hovered(doc, item, "stop") and C.btn_bg_hover or C.btn_bg)
+        sspr(7, 8, 0, 4, 5, ix + AUDIO_STOP_X, bby)
+        pal()
 
       elseif item.tag == "comments" then
         _apply_font(nil)
